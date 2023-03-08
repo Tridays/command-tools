@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+# colors 颜色
+if [ "$TERM" == "xterm-256color" ];then
+	RED="\e[31;1m"      #红
+	GREEN="\e[32;1m"   #绿
+	YELLOW="\e[33;1m"  #黄
+	BLUE="\e[34;1m"    #蓝
+	PURPLE="\e[35;1m"    #紫红
+	CYANINE="\e[36;1m"    #青蓝
+	WHITE="\e[0m"       ##白色
+else
+	RED=""
+	GREEN=""
+	YELLOW=""
+	BLUE=""
+	PURPLE=""
+	CYANINE=""
+	WHITE=""
+fi
+
+# some constant var
+THREEDAYS="https://gitee.com/djyd/linux-tools/raw/master/Termux/ThreeDays"
+CONFIG="$HOME/.config/td/ThreeDays"
+
+# some function
+_enter() { echo -en "\n${GREEN}Press Enter to continue${WHITE}";read op ;:;}
+# 自定义通告颜色 
+_msg() {
+	# I：消息
+	# W：警告
+	# E：错误
+	case $1 in
+	I)
+		echo -e "\n${GREEN}I：$2${WHITE}"
+		;;
+	W)
+		echo -e "\n${YELLOW}W：$2${WHITE}"
+		;;
+	E)
+		echo -e "\n${RED}E：$2${WHITE}"
+		;;
+	esac 
+}
+
+# 栈模拟，菜单多级控制
+export stack=()
+_node(){
+		#echo "------$*------"
+		stack[${#stack[@]}]="$*"
+		while :
+		do
+			# exec
+			while :
+			do
+			[ "$((${#stack[@]}-1))" == "-1" ] && exit
+				${stack[$((${#stack[@]}-1))]}
+				case $? in
+				0)
+					echo "取消前${stack[*]}"
+					unset stack[$((${#stack[@]}-1))]
+					echo "取消后${stack[*]}"
+					_enter
+					break
+					;;
+				255)
+					echo "取消前${stack[*]}"
+					unset stack[$((${#stack[@]}-1))]
+					unset stack[$((${#stack[@]}-2))]
+					echo "取消后${stack[*]}"
+					_enter
+					break					
+					;;
+				esac
+			done		
+		done
+}
+
+_checkInstall(){
+		Path="$1"
+		if [ -e "$Path" ];then
+			_msg W "检测到本地已安装"
+			echo -en "$red是否需要卸载[Y/N]$white" ""
+			read op
+			case $op in
+				y|Y)
+					echo -en "${RED}回车两次即可卸载！${WHITE}" ""
+					_enter;_enter
+					 rm -rf $Path
+	    				_msg W "移除完成！"
+	    				_enter
+	    				return 0
+					;;
+				*)
+					return -1
+					;;
+			esac
+		fi
+		
+}
+
+
+# exec command
+_command(){
+	# args：$1 $2 $3
+	case $# in
+	1)
+		echo -e "\n${BLUE}[*]$white${GREEN}$1${WHITE}"
+		command $1
+		;;
+	2 | 3)
+		n=0
+		for x in $2
+		do
+			while :
+			do
+				echo -e "\n${BLUE}[*]$white${GREEN}$1 $x $3 ${RED}(无情计数器：$n )${WHITE}"
+				command="$1 $x $3"
+				command $command
+				if [ "$?" == "0" ];then
+					let n++
+					break
+				else
+					echo -e "\n${RED}Erro：Failed，please try again！${WHITE}"
+					_enter
+				fi
+			done
+		done		
+		;;
+	esac
+	
+}
+
+# dialog
+_dialog(){
+	export PORT=1
+	
+	dialog --clear \
+		--backtitle "$1" \
+		--title "@参(•̀⌄•́)芜湖起飞" \
+	 	--nocancel \
+	 	--menu "$2" 20 40 8 \
+		"${OPTIONS[@]}" \
+	 	2>$HOME/menu
+	 	
+	export op=`cat $HOME/menu`
+}
+
+# main
+_main(){
+	OPTIONS=(
+         1 "配置语言环境"
+         2 "终端美化"
+         3 "更换源sources.list"
+         4 "更新脚本"
+         5 "其他选项"
+         6 "退出脚本")
+    
+    _dialog "首页" "使用↑↓选择，也可以用手点击选项再回车哦" $OPTIONS
+    case $op in 
+    	1)
+			_node  _language
+			
+			;;
+    	2)
+			_node  _style
+
+			;;
+    	3)
+			_node  _sources
+
+			;;
+    	4)
+			_node  _update
+
+			;;
+    	5)
+			_node _otherOP
+
+			;;
+    	6)
+    	    clear
+    	    return 0
+			;;
+    esac
+}
+
+
+# shell begin
+if [ ! -e "$HOME/.config/td/ThreeDays" ];then
+	mkdir -p $HOME/.config/td
+	_command "wget -c" "$THREEDAYS" "-O $CONFIG"
+	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+fi
+source $CONFIG
+_node _main
+
