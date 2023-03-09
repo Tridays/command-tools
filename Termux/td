@@ -193,4 +193,3 @@ if [ ! -e "$HOME/.config/td/ThreeDays" ];then
 fi
 source $CONFIG
 _node _main
-
