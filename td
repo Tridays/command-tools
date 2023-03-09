@@ -20,12 +20,50 @@ Github国内镜像网站
 	加速下载方法二
 	wget https://raw.fastgit.org/kubernetes/kubernetes/master/README.md
 Q
+url=https://gitee.com/djyd/linux-tools.git
+# some constant var
+TERMUX_AARCH64_TD="https://github.com/Tridays/command-tools/blob/main/Termux/ThreeDays"
+ISH_TD=""
+UBUNTU2004_AARCH64_TD=""
+UBUNTU2004_AMD64_TD=""
+
+CLONE_SPEED_UP_LINK=("gitclone.com" )
+RELEASE_SPEED_UP_LINK=("https://hub.fastgit.org/" )
+RAW_SPEED_UP_LINK=("https://ghproxy.com/" "https://gh.api.99988866.xyz/")
 
 #  Github国内镜像网站
-CLONE_SPEED_UP_LINK=("https://gitclone.com/" )
-RELEASE_SPEED_UP_LINK=("https://hub.fastgit.org/" )
-RAW_SPEED_UP_LINK=("https://raw.fastgit.org/" )
-
+_github_mirror_speed_up(){
+	# args：$1 $2
+	# $((RANDOM%3)) -> [0,3]
+	case $1 in
+	clone)
+		n=$((${#CLONE_SPEED_UP_LINK[@]}-1))
+		r=$((RANDOM%n))
+		if [ $r -eq 0 ];then
+			url="${CLONE_SPEED_UP_LINK[0]}"
+			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
+		fi
+		;;
+	release)
+		n=$((${#RELEASE_SPEED_UP_LINK[@]}-1))
+		r=$((RANDOM%n))
+		if [ $r -eq 0 ];then
+			url=
+		elif [ $r -eq 1 ];then
+			echo
+		fi
+		;;
+	raw)
+		n=$((${#RAW_SPEED_UP_LINK[@]}-1))
+		r=$((RANDOM%n))
+		if [ $r -eq 0 ];then
+			url="${RAW_SPEED_UP_LINK[0]}${2}"
+		elif [ $r -eq 1 ];then
+			url="${RAW_SPEED_UP_LINK[1]}${2}"
+		fi
+		;;
+	esac
+}
 
 
 
@@ -59,7 +97,7 @@ _command(){
 		echo -e "\n${BLUE}[*]$white${GREEN}$1${WHITE}"
 		command $1
 		;;
-	2 | 3)
+	*)
 		for x in $2
 		do
 			while :
@@ -114,7 +152,9 @@ do
 		_command "pkg update"
 		_command "pkg i -y" "wget"
 		rm -rf $PREFIX/bin/td
-		_command "wget -c" "https://gitee.com/djyd/linux-tools/raw/master/Termux/td" "-O $PREFIX/bin/td"
+		_github_mirror_speed_up raw $TERMUX_AARCH64_TD
+		_command "wget -c" "$url" "-O $PREFIX/bin/td"
+		_enter
 		chmod 775 $PREFIX/bin/td
 		echo -e "\nRun the ${RED}td${WHITE} command to start\n"
 		break
