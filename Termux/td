@@ -19,13 +19,13 @@ else
 fi
 
 # some constant var
-THREEDAYS="https://github.com/Tridays/command-tools/blob/main/Termux/ThreeDays"
+THREEDAYS="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/ThreeDays"
 TERMUX_AARCH64_TD="https://github.com/Tridays/command-tools/blob/main/Termux/td"
 CONFIG="$HOME/.config/td/ThreeDays"
 # github speed up
 CLONE_SPEED_UP_LINK=("gitclone.com" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
-RAW_SPEED_UP_LINK=("https://ghproxy.com/" "raw.fastgit.org")
+RAW_SPEED_UP_LINK=("raw.gitfast.tk" "raw.fastgit.org") # https://ghproxy.com/
 
 
 #  Github国内镜像网站
@@ -57,7 +57,8 @@ _github_mirror_speed_up(){
 		r=$((RANDOM%n))
 		echo $((RANDOM%1))
 		if [ $r -eq 0 ];then
-			url="${RAW_SPEED_UP_LINK[0]}${2}"
+			url="${RAW_SPEED_UP_LINK[0]}"
+			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
 		elif [ $r -eq 1 ];then
 			url="${RAW_SPEED_UP_LINK[1]}"
 			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
