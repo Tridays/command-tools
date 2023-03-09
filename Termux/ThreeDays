@@ -857,10 +857,6 @@ _otherOP(){
 
 # 更新脚本
 _update(){
-	# echo -e "\n\n${GREEN}测试网络连通性……${WHITE}"
-	# ping -c 3 https://baidu.com >/dev/null 2>&1 
-	# [  "$?" != "0" ]&&echo -e "\n\n${RED}无法访问到 baidu.com，请检查网络${WHITE}"&&exit
-	# echo -e "${RED}网络连接成功！${WHITE}"
 	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
 	rm -rf $PREFIX/bin/td $CONFIG
 	# fun文件
