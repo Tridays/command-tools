@@ -866,7 +866,7 @@ _update(){
 	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
 	rm -rf $PREFIX/bin/td $CONFIG
 	# fun文件
-	_github_mirror_speed_up raw $THREEDAYS
+	_github_mirror_speed_up raw $THREEDAYS_RAW
 	_command "wget -c" "$url" "-O $CONFIG"
 	# main脚本
 	_github_mirror_speed_up raw $TERMUX_AARCH64_TD_RAW
