@@ -229,7 +229,8 @@ _main(){
 # shell begin
 if [ ! -e "$HOME/.config/td/ThreeDays" ];then
 	mkdir -p $HOME/.config/td
-	_command "wget -c" "$THREEDAYS" "-O $CONFIG"
+	_github_mirror_speed_up raw $THREEDAYS
+	_command "wget -c" "$url" "-O $CONFIG"
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 fi
 source $CONFIG
