@@ -10,6 +10,7 @@ white="\e[0m"
 #bash -n /data/data/com.termux/files/home/hzt/op.sh
 #[ ! "$?" == "0" ]&&echo -e "\n\n$red检查到op.sh有语法错误，停止上传!$white"&&exit
 
+#ssh-keygen -t rsa -C "2028741073@qq.com"
 
 msg() { echo -e "\n$blue[*]$white$1$2$white" ;:;}  ##自定义通告颜色
 
