@@ -19,7 +19,8 @@ else
 fi
 
 # some constant var
-THREEDAYS="https://gitee.com/djyd/linux-tools/raw/master/Termux/ThreeDays"
+THREEDAYS="https://github.com/Tridays/command-tools/blob/main/Termux/ThreeDays"
+TERMUX_AARCH64_TD="https://github.com/Tridays/command-tools/blob/main/Termux/td"
 CONFIG="$HOME/.config/td/ThreeDays"
 # github speed up
 CLONE_SPEED_UP_LINK=("gitclone.com" "https://ghproxy.com/" )

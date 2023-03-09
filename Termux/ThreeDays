@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
 # some constant var
-NVIM_ZIP="https://gitee.com/djyd/command-tools/raw/master/Termux/nvim/nvim.zip"
-FONT_ZIP="https://gitee.com/djyd/command-tools/raw/master/Termux/nvim/font.tar.xz"
+NVIM_ZIP="https://github.com/Tridays/command-tools/blob/main/Termux/nvim/nvim.zip"
+FONT_ZIP="https://github.com/Tridays/command-tools/blob/main/Termux/nvim/font.tar.xz"
 JDK11_ZIP="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
 DICT_ZIP="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
+
+# 
+FILE_BROWSER="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
+UNBLOCK_NETEASE_MUSIC="https://github.com/nondanee/UnblockNeteaseMusic"
+MUSIC_DL="https://github.com/0xHJK/music-dl.git"
 
 
 
@@ -239,7 +244,8 @@ _filebrowser(){
 		[ -z "$(dpkg -l | grep termux-services)" ]&&_command "pkg i " "termux-services " "-y"
 		mkdir -p $filebrowserPath
 		cd $filebrowserPath
-		_command "wget -c " "https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz" " -O filebrowser.tar.gz"
+		_github_mirror_speed_up release $FILE_BROWSER
+		_command "wget -c " "$url" " -O filebrowser.tar.gz"
 		tar -zxvf filebrowser.tar.gz
 		chmod +x filebrowser
 		rm filebrowser.tar.gz
@@ -295,7 +301,8 @@ _UnblockNeteaseMusic(){
 		cd $HOME/github
 		[ -z "$(command -v node)" ]&&_command "pkg i -y" "nodejs"
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
-		_command "git clone --depth 1" "https://github.com/nondanee/UnblockNeteaseMusic"
+		_github_mirror_speed_up clone $UNBLOCK_NETEASE_MUSIC
+		_command "git clone --depth 1" "$url"
 		echo -e "${GREEN}安装完成!${WHITE}"
 		_enter
 	}
@@ -347,7 +354,8 @@ _music-dl(){
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
 		mkdir -p $HOME/github
 		cd $HOME/github
-		_command "git clone --depth 1 " " https://github.com/0xHJK/music-dl.git"
+		_github_mirror_speed_up clone $MUSIC_DL
+		_command "git clone --depth 1 " "$url"
 		cd music-dl
 		pip3 install -r requirements.txt
 		_enter
@@ -854,8 +862,13 @@ _update(){
 	[  "$?" != "0" ]&&echo -e "\n\n${RED}无法访问到Gitee，请检查网络${WHITE}"&&exit
 	echo -e "${RED}网络连接成功！${WHITE}"
 	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
-	rm -rf $PREFIX/bin/td
-	_command "wget -c" "https://gitee.com/djyd/linux-tools/raw/master/Termux/td" "-O $PREFIX/bin/td"
+	rm -rf $PREFIX/bin/td $CONFIG
+	# fun文件
+	_github_mirror_speed_up raw $THREEDAYS
+	_command "wget -c" "$url" "-O $CONFIG"
+	# main脚本
+	_github_mirror_speed_up raw $TERMUX_AARCH64_TD
+	_command "wget -c" "$url" "-O $PREFIX/bin/td"
 	chmod 775 $PREFIX/bin/td
 	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"	
 	exit
