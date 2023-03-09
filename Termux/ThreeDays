@@ -5,12 +5,12 @@ NVIM_ZIP_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termu
 FONT_TAR_XZ_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/nvim/font.tar.xz"
 JDK11_ZIP_RELEASES="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
 DICT_ZIP_RELEASES="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
-
+NODEJS16_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/node/nodejs-16.tar.xz"
 # 
 FILE_BROWSER_TAR_GZ_RELEASES="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
 UNBLOCK_NETEASE_MUSIC_CLONE="https://github.com/nondanee/UnblockNeteaseMusic"
 MUSIC_DL_CLONE="https://github.com/0xHJK/music-dl.git"
-
+WIKIJS_CLONE="https://github.com/requarks/wiki"
 
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
 # 语言安装
@@ -814,9 +814,126 @@ _nvimIDE(){
 }
 
 
+# 更新脚本
+_update(){
+	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
+	rm -rf $PREFIX/bin/td $CONFIG
+	# fun文件
+	_github_mirror_speed_up raw $THREEDAYS_RAW
+	_command "wget -c" "$url" "-O $CONFIG"
+	# main脚本
+	_github_mirror_speed_up raw $TERMUX_AARCH64_TD_RAW
+	_command "wget -c" "$url" "-O $PREFIX/bin/td"
+	chmod 775 $PREFIX/bin/td $CONFIG
+	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"	
+	exit
+}
+
+_wikijs(){
+	_i(){
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}Wiki.js 是一个基于 NodeJS 的现代、轻量级和强大的 wiki 应用程序。较适合做小团队的知识库，一方面适合管理和阅读，另一方面还能协同创作。
+			${GREEN}Github：${WHITE}https://github.com/requarks/wiki
+			${GREEN}使用说明书：${WHITE}https://docs.requarks.io/install/requirements
+			${RED}环境要求：${WHITE}
+			\t${GREEN}数据库(以下其一)：${WHITE}
+			\t\t●MySQL ≥8.0
+			\t\t●MariaDB ≥10.2.7
+			\t\t●SQLite ≥3.9
+			\t\t●MS SQL Server ≥2012  (仅供参考)
+			\t${GREEN}Node.js：${WHITE}
+			\t\t● 16.0.0≤ node <17.0.0  (推荐)
+			EOF
+		)"
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] || return 0
+		# install wiki.js
+		_checkInstall "$HOME/wiki" || return 0
+		_github_mirror_speed_up clone $WIKIJS_CLONE
+		_command "git clone --depth 1" "$url"
+		# install nodejs-16
+		cd $PREFIX/opt
+		rm -rf nodejs-16*
+		_github_mirror_speed_up raw $NODEJS16_RAW
+		_command "wget -c" "$url"
+		xz -d nodejs-16.tar.xz
+		tar -xvf nodejs-16.tar
+		rm -rf nodejs-16.tar
+	    # 选择数据库
+	    OPTIONS=(
+			1 "MySQL｜localhost:3306"
+			2 "MariaDB｜localhost:3306"
+			3 "sqlite｜localhost:3306")
+		_dialog "数据库选择" "请选择数据库信息" $OPTIONS
+		
+		# 暂且固定为MySQL
+		op=1
+		# MySQL
+		if [ "$op" == "1" ];then
+			password=""
+			while :
+			do
+				password=$(dialog --clear --title "请输入MySQL 用户root的密码" \
+				--inputbox "输入root的密码：" 8 50 \
+				3>&1 1>&2 2>&3 3>&-)
+				
+				clear
+				mysql -uroot -p$password -e "create database if not exists wiki;show databases;"
+				if [ "$?" == "0" ];then
+					_msg W "成功创建wiki数据库！"
+					_enter
+					break
+				else
+					_msg E "创建wiki数据库失败！请检查数据库是否在运行 或 密码是否正确"
+					_enter
+				fi
+			done
+			# 配置wiki.js文件
+			cd $HOME/wiki
+			cp config.sample.yml config.yml
+			sed -i "s#type: postgres#type: mysql#g;s#port: 5432#port: 3306#g;s#user: wikijs#user: root#g;s#pass: wikijsrocks#pass: $password#g" config.yml
+		# MariaDB
+		elif [ "$op" == "2" ];then
+			echo
+		# sqlite
+		elif [ "$op" == "3" ];then
+			echo
+		fi
+		_msg I "wiki.js安装成功！"
+		_enter
+	}
+    OPTIONS=(
+         1 "安装｜卸载Wiki js"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→Wiki.js" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_i
+   			;;
+		2)
+			_open
+			;;
+		3)
+			_close
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 
+
+
+
+
+
+# main
 _otherOP(){
     OPTIONS=(
          1 "VScode-server"
@@ -826,8 +943,10 @@ _otherOP(){
          5 "猛犸充电"
          6 "解锁网易云灰色歌曲"
          7 "音乐下载器music-dl"
-         8 "<<返回上级目录>>"
-         9 "退出脚本")
+         8 "Wiki.js"
+         9 "MySQL"
+         10 "<<返回上级目录>>"
+         11 "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
     case $op in
     	1)
@@ -850,8 +969,14 @@ _otherOP(){
     		;;
     	7)
     		_node _music-dl
-    		;;    		
+    		;;
     	8)
+    		_wikijs
+    		;;
+		9)
+    		_mysql
+    		;;
+    	10)
     		return 0
     		;;
     	*)
@@ -861,17 +986,3 @@ _otherOP(){
 }
 
 
-# 更新脚本
-_update(){
-	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
-	rm -rf $PREFIX/bin/td $CONFIG
-	# fun文件
-	_github_mirror_speed_up raw $THREEDAYS_RAW
-	_command "wget -c" "$url" "-O $CONFIG"
-	# main脚本
-	_github_mirror_speed_up raw $TERMUX_AARCH64_TD_RAW
-	_command "wget -c" "$url" "-O $PREFIX/bin/td"
-	chmod 775 $PREFIX/bin/td $CONFIG
-	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"	
-	exit
-}

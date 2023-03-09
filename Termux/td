@@ -122,26 +122,26 @@ _node(){
 }
 
 _checkInstall(){
-		Path="$1"
-		if [ -e "$Path" ];then
-			_msg W "检测到本地已安装"
-			echo -en "$red是否需要卸载[Y/N]$white" ""
-			read op
-			case $op in
-				y|Y)
-					echo -en "${RED}回车两次即可卸载！${WHITE}" ""
-					_enter;_enter
-					 rm -rf $Path
-	    				_msg W "移除完成！"
-	    				_enter
-	    				return 0
-					;;
-				*)
-					return -1
-					;;
-			esac
-		fi
-		
+	Path="$1"
+	if [ -e "$Path" ];then
+		_msg W "检测到本地已安装"
+		echo -en "${RED}是否需要卸载[Y/N]${WHITE}" ""
+		read op
+		case $op in
+			y|Y)
+				echo -en "${RED}回车两次即可卸载！${WHITE}" ""
+				_enter;_enter
+				 rm -rf $Path
+	   				_msg W "移除完成！"
+	   				_enter
+	   				return 0
+				;;
+			*)
+				return -1
+				;;
+		esac
+	fi
+	return 0
 }
 
 
