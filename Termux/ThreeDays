@@ -848,7 +848,7 @@ _wikijs(){
 		)"
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
-		[[ ! "$op" == "y" && ! "$op" == "Y" ]] || return 0
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		# install wiki.js
 		_checkInstall "$HOME/wiki" || return 0
 		_github_mirror_speed_up clone $WIKIJS_CLONE

@@ -24,9 +24,9 @@ TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/m
 CONFIG="$HOME/.config/td/ThreeDays"
 
 # github speed up
-CLONE_SPEED_UP_LINK=("gitclone.com" "https://ghproxy.com/" )
+CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
-RAW_SPEED_UP_LINK=("raw.gitfast.tk" "raw.fastgit.org") # https://ghproxy.com/
+RAW_SPEED_UP_LINK=("raw.gitfast.tk") # "raw.fastgit.org" https://ghproxy.com/
 
 
 #  Github国内镜像网站
@@ -39,7 +39,7 @@ _github_mirror_speed_up(){
 		r=$((RANDOM%n))
 		if [ $r -eq 0 ];then
 			url="${CLONE_SPEED_UP_LINK[0]}"
-			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
+			url=$(echo $2 | sed "s#https://#$url#g")
 		elif [ $r -eq 1 ];then
 			url="${CLONE_SPEED_UP_LINK[1]}${2}"
 		fi
