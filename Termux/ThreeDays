@@ -3,14 +3,16 @@
 # some constant var
 NVIM_ZIP_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/nvim/nvim.zip"
 FONT_TAR_XZ_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/nvim/font.tar.xz"
-JDK11_ZIP_RELEASES="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
-DICT_ZIP_RELEASES="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
+JDK11_ZIP_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
+DICT_ZIP_RELEASE="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
 NODEJS16_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/node/nodejs-16.tar.xz"
 # 
-FILE_BROWSER_TAR_GZ_RELEASES="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
+FILE_BROWSER_TAR_GZ_RELEASE="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
 UNBLOCK_NETEASE_MUSIC_CLONE="https://github.com/nondanee/UnblockNeteaseMusic"
 MUSIC_DL_CLONE="https://github.com/0xHJK/music-dl.git"
-WIKIJS_CLONE="https://github.com/requarks/wiki"
+WIKIJS_RELEASE="https://github.com/requarks/wiki/releases/download/v2.5.297/wiki-js.tar.gz"
+WORDPRESS="https://cn.wordpress.org/wordpress-6.1.1-zh_CN.zip"
+
 
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
 # 语言安装
@@ -243,7 +245,7 @@ _filebrowser(){
 		[ -z "$(dpkg -l | grep termux-services)" ]&&_command "pkg i " "termux-services " "-y"
 		mkdir -p $filebrowserPath
 		cd $filebrowserPath
-		_github_mirror_speed_up release $FILE_BROWSER_TAR_GZ_RELEASES
+		_github_mirror_speed_up release $FILE_BROWSER_TAR_GZ_RELEASE
 		_command "wget -c " "$url" " -O filebrowser.tar.gz"
 		tar -zxvf filebrowser.tar.gz
 		chmod +x filebrowser
@@ -680,7 +682,7 @@ _nvimIDE(){
 		##下载jdk11
 		if [  ! -e "$PREFIX/opt/openjdk-11.0.12" ];then
 			cd $PREFIX/opt
-			_github_mirror_speed_up release "$JDK11_ZIP_RELEASES"
+			_github_mirror_speed_up release "$JDK11_ZIP_RELEASE"
 			_command "wget -c" "$url"
 			unzip -o openjdk-11.0.12-aarch64.zip
 			rm -rf openjdk-11.0.12-aarch64.zip
@@ -694,7 +696,7 @@ _nvimIDE(){
 		    _msg W "单词库已存在跳过下载！"
 		else
 			cd $HOME/.vim/dict
-			_github_mirror_speed_up release "$DICT_ZIP_RELEASES"
+			_github_mirror_speed_up release "$DICT_ZIP_RELEASE"
 			_command "wget -c" "$url" "-O dict.zip"
 			unzip dict.zip 
 			rm -rf dict.zip
@@ -849,10 +851,15 @@ _wikijs(){
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		
 		# install wiki.js
-		_checkInstall "$HOME/wiki" || return 0
-		_github_mirror_speed_up clone $WIKIJS_CLONE
-		_command "git clone --depth 1" "$url"
+		_checkInstall "$HOME/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
+		mkdir "$HOME/wiki"
+		cd "$HOME/wiki"
+		_github_mirror_speed_up release $WIKIJS_RELEASE
+		_command "wget -c" "$url"
+		tar -zxvf wiki-js.tar.gz
+		rm -rf wiki-js.tar.gz
 		# install nodejs-16
 		cd $PREFIX/opt
 		rm -rf nodejs-16*
@@ -904,6 +911,56 @@ _wikijs(){
 		_msg I "wiki.js安装成功！"
 		_enter
 	}
+	_open(){
+		clear
+		[ ! -e "$HOME/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
+		path="$PREFIX/var/service/wiki"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			cd "$HOME/wiki"
+			exec $PREFIX/opt/nodejs-16/bin/node server
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+	    # 选择数据库
+	    OPTIONS=(
+			1 "MySQL｜localhost:3306"
+			2 "MariaDB｜localhost:3306"
+			3 "sqlite｜localhost:3306")
+		_dialog "数据库选择" "请选择数据库信息" $OPTIONS
+		case "$op" in
+		1)
+			_command "sv-enable mysqld"
+			;;
+		2)
+			_command "sv-enable mariadbd"
+			;;
+		3)
+			_command "sv-enable sqlite"
+			;;
+		esac		
+		_command "sv-enable wiki"
+		_msg W "网站地址：localhost:3000"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_close(){
+		clear
+		[ ! -e "$HOME/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
+		_command "sv-disable wiki"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
     OPTIONS=(
          1 "安装｜卸载Wiki js"
          2 "启动服务"
@@ -926,7 +983,125 @@ _wikijs(){
 	esac
 }
 
-
+_wordpress(){
+	_i(){
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}WordPress是一款个人博客系统，并逐步演化成一款内容管理系统
+			${GREEN}官网：${WHITE}https://cn.wordpress.org
+			${RED}环境要求：${WHITE}
+			\t\t●MySQL
+			\t\t●PHP
+			\t\t●php-fpm
+			\t\t●nginx
+			EOF
+		)"
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		[ -z "$(command -v php)" ] && _command "pkg i -y" "php"
+		[ -z "$(command -v php-fpm)" ] && _command "pkg i -y" "php-fpm"
+		# install wordpress
+		_checkInstall "$PREFIX/opt/wordpress" && rm -rf "$PREFIX/var/service/wordpress" || return 0
+		cd "$PREFIX/opt/"
+		_command "wget -c" "$WORDPRESS" "-O wordpress.zip"
+		unzip wordpress.zip
+		rm -rf wordpress.zip
+		
+		# MySQL
+		password=""
+		while :
+		do
+			password=$(dialog --clear --title "请输入MySQL 用户root的密码" \
+			--inputbox "输入root的密码：" 8 50 \
+			3>&1 1>&2 2>&3 3>&-)
+			
+			clear
+			mysql -uroot -p$password -e "create database if not exists wordpress;show databases;"
+			if [ "$?" == "0" ];then
+				_msg W "成功创建wordpress数据库！"
+				_enter
+				break
+			else
+				_msg E "创建wordpress数据库失败！请检查数据库是否在运行 或 密码是否正确"
+				_enter
+			fi
+		done
+		
+		# wordpress配置
+		cd $PREFIX/opt/wordpress
+		cp wp-config-sample.php wp-config.php
+		file=$PREFIX/opt/wordpress/wp-config.php
+		sed -i "s#database_name_here#wordpress#g" $file
+		sed -i "s#username_here#root#g" $file
+		sed -i "s#password_here#$password#g" $file
+		sed -i "s#localhost#127.0.0.1#g" $file
+		
+		# nginx配置
+		file="$PREFIX/etc/nginx/nginx.conf"
+		if [ -z "$(cat $file | grep 'include config/*.conf;')" ];then
+			row=$(cat $file |grep -n } | sed -n 12p | awk -F ":" '{print $1}')
+			sed -i "$(($row-1)){s/^/include config/*.conf;/}" $file
+		fi
+		mkdir -p $PREFIX/etc/nginx/config
+		cat<<-EOF> $PREFIX/etc/nginx/config/wordpress.conf
+			server {
+			    listen       8010;
+			    #listen       [::]:80;			ipv6
+			    server_name  127.0.0.1;
+			    location / {
+			        root   $PREFIX/opt/wordpress;		# 服务1的前端文件存放的地址
+			        index  index.php index.html index.htm;									# 指定默认访问的页面
+			    }
+			    location ~ \\.php$ {
+			    root  $PREFIX/opt/wordpress;
+			    fastcgi_pass   unix:$PREFIX/var/run/php-fpm.sock;
+			    fastcgi_index  index.php;
+			    fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
+			    include  fastcgi_params;
+		        }
+		    }
+		EOF
+		_msg I "wordpress安装成功！"
+		_enter		
+	}
+	_open(){
+		clear
+		[ ! -e "$PREFIX/opt/wordpress" ] && _msg E "请先安装wordpress！" && _enter && return 0
+		_command "sv-enable mysqld"
+		_command "sv-enable php-fpm"
+		_command "sv-enable nginx"
+		_msg W "网站地址：localhost:8010"
+		_enter
+	}
+	_close(){
+		clear
+		[ ! -e "$PREFIX/opt/wordpress" ] && _msg E "请先安装wordpress！" && _enter && return 0
+		_command "sv-disable php-fpm"
+		_command "sv-disable nginx"
+		_enter
+	}
+    OPTIONS=(
+         1 "安装wordpress"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→wordpress" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_i
+   			;;
+		2)
+			_open
+			;;
+		3)
+			_close
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 
@@ -944,9 +1119,12 @@ _otherOP(){
          6 "解锁网易云灰色歌曲"
          7 "音乐下载器music-dl"
          8 "Wiki.js"
-         9 "MySQL"
-         10 "<<返回上级目录>>"
-         11 "退出脚本")
+         9 "wordpress"
+         10 ""
+         11 ""
+         12 "MySQL"
+         13 "<<返回上级目录>>"
+         14 "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
     case $op in
     	1)
@@ -971,12 +1149,21 @@ _otherOP(){
     		_node _music-dl
     		;;
     	8)
-    		_wikijs
+    		_node _wikijs
     		;;
-		9)
-    		_mysql
+    	9)
+    		_node _wordpress
     		;;
     	10)
+    		echo
+    		;;
+    	11)
+    		echo
+    		;;    	
+		12)
+    		_node _mysql
+    		;;
+    	13)
     		return 0
     		;;
     	*)

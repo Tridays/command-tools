@@ -237,6 +237,7 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	_github_mirror_speed_up raw $THREEDAYS_RAW
 	_command "wget -c" "$url" "-O $CONFIG"
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
 fi
 source $CONFIG
 _node _main
