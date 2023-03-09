@@ -12,7 +12,6 @@ UNBLOCK_NETEASE_MUSIC="https://github.com/nondanee/UnblockNeteaseMusic"
 MUSIC_DL="https://github.com/0xHJK/music-dl.git"
 
 
-
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
 # 语言安装
 _language(){
