@@ -56,7 +56,7 @@ _github_mirror_speed_up(){
 	raw)
 		n=${#RAW_SPEED_UP_LINK[@]}
 		r=$((RANDOM%n))
-		echo $((RANDOM%1))
+		#echo $((RANDOM%1))
 		if [ $r -eq 0 ];then
 			url="${RAW_SPEED_UP_LINK[0]}"
 			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
