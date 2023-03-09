@@ -230,7 +230,7 @@ _main(){
 
 
 # shell begin
-if [ ! -e "$HOME/.config/td/ThreeDays" ];then
+if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	mkdir -p $HOME/.config/td
 	_github_mirror_speed_up raw $THREEDAYS
 	_command "wget -c" "$url" "-O $CONFIG"
