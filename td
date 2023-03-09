@@ -109,6 +109,7 @@ _selectUI(){
 		\t\t2：${GREEN}ish${WHITE} (iPhone｜MacOS｜Apline)
 		\t\t3：${GREEN}Ubuntu${WHITE} (20.04 LTS｜aarch64)
 		\t\t4：${GREEN}Ubuntu${WHITE} (20.04 LTS｜amd64)
+		\t\t4：${GREEN}Openwrt${WHITE} (Linux｜aarch64)
 		\t\t5：${GREEN}Exit${WHITE}
 		${PURPLE}\t--------------------------------------------------${WHITE}
 	EOF
