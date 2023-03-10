@@ -6,6 +6,7 @@ FONT_TAR_XZ_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Te
 JDK11_ZIP_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
 DICT_ZIP_RELEASE="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
 NODEJS16_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/node/nodejs-16.tar.xz"
+HMacMd5Utils_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/mmcd/HMacMd5Utils.java"
 # 
 FILE_BROWSER_TAR_GZ_RELEASE="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
 UNBLOCK_NETEASE_MUSIC_CLONE="https://github.com/nondanee/UnblockNeteaseMusic"
@@ -1409,6 +1410,258 @@ _TreeSoft(){
 	esac
 }
 
+_mmcd(){
+		##所有设备的编码
+		AllNum=(
+		"6384906472"
+		"6384907232"
+		"6384906453"
+		"6384906426"
+		"6384906425"
+		"6384906458"
+		##
+		"6381715522"
+		"6381711269"
+		"6381706707"
+		"6384409797"
+		"6384409896"
+		"6381706728"
+		##
+		"6381706745"
+		"6280501937"
+		"6380500473"
+		"6280501923"
+		"6381701046"
+		"6384409885"
+		##
+		"6380603292"
+		"6380606290"
+		"6380606289"
+		"6380603243"
+		"6280500021"
+		"6380601933"
+		"6380603266"
+		##
+		"6380603240"
+		"6380602642"
+		"6380602601"
+		"6380606238"
+		"6380500943"
+		"6380500992"
+		"6380500951"
+		##
+		"6380603268"
+		"6380602604"
+		##
+		"6381711270"
+		"6381711273"
+		)
+		##对应编码信息
+		Message=(
+		"桂电花江校区国际学院A[最靠近门口]"
+		"桂电花江校区国际学院B[仲园食堂旁边]"
+		"桂电花江校区国际学院C[仲园食堂旁边]"
+		"桂电花江校区国际学院D[仲园食堂旁边]"
+		"桂电花江校区国际学院E[仲园食堂旁边]"
+		"桂电花江校区国际学院F[最靠里边]"
+		##
+		"D区宿舍前面斜坡A[离D区最远]"
+		"D区宿舍前面斜坡B"
+		"D区宿舍前面斜坡C"
+		"D区宿舍前面斜坡D"
+		"D区宿舍前面斜坡E"
+		"D区宿舍前面斜坡F[离D区最近]"
+		##
+		"F区宿舍前面A[离岗门最远]"
+		"F区宿舍前面B"
+		"F区宿舍前面C"
+		"F区宿舍前面D"
+		"F区宿舍前面E"
+		"F区宿舍前面F[离岗门最近]"
+		##
+		"B区宿舍[左侧]充电车棚A[离中央食堂最近]"
+		"B区宿舍[左侧]充电车棚B"
+		"B区宿舍[左侧]充电车棚C"
+		"B区宿舍[左侧]充电车棚D"
+		"B区宿舍[左侧]充电车棚E"
+		"B区宿舍[左侧]充电车棚F"
+		"B区宿舍[左侧]充电车棚G[B区宿舍左门口]"
+		##
+		"B区宿舍[右侧]充电车棚A[B区宿舍右门口]"
+		"B区宿舍[右侧]充电车棚B"
+		"B区宿舍[右侧]充电车棚C"
+		"B区宿舍[右侧]充电车棚D"
+		"B区宿舍[右侧]充电车棚E"
+		"B区宿舍[右侧]充电车棚F"
+		"B区宿舍[右侧]充电车棚G[离中央食堂最远]"
+		##
+		"17教学楼两充电车棚A"
+		"17教学楼两充电车棚B"
+		##
+		"紫荆府"
+		"泰顺县香洲雅苑2018.10.18LA"
+		)
+
+		# Login headers
+		Login=(
+		"appVersion: 2.7.2"
+		"client: android"
+		"client-osVersion: 30"
+		#"deviceId: CC652F2E899531A5C38DB6BEF39F750F"
+		#"appId: 20171108"
+		#"timestamp: 1646839690092"
+		#"signature: dcb065d6b51d25f13dd8fc9ced7b3283"
+		"appCommId: MCB_INSTANCE_ANDROID_APP"
+		"Content-Type: application/json; charset=utf-8"
+		#"Content-Length: 57"
+		#"Content-Length: 62"
+		#"Content-Length: 30"
+		"Host: mobile.mamcharge.com"
+		"Connection: Keep-Alive"
+		#"Accept-Encoding: gzip"
+		"User-Agent: okhttp/3.2.0"
+		)
+
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}声明：${WHITE}
+			\t\t●仅提供学习测试，请勿用于商业用途！
+			\t\t●仅提供学习测试，请勿用于商业用途！
+			\t\t●仅提供学习测试，请勿用于商业用途！
+			${RED}环境要求：${WHITE}
+			\t\t●MySQL
+			EOF
+		)"
+		# install mmcd
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		[ -z "$(command -v java)" ] && _command "pkg i -y" "openjdk-17"
+		[ -z "$(command -v sqlite3)" ] && _command "pkg i -y" "sqlite"
+		# MySQL
+		password=""
+		while :
+		do
+			password=$(dialog --clear --title "请输入MySQL 用户root的密码" \
+			--inputbox "输入root的密码：" 8 50 \
+			3>&1 1>&2 2>&3 3>&-)
+			
+			clear
+			mysql -uroot -p${password} -e "drop database if exists mmcd;"
+			mysql -uroot -p${password} -e "create database if not exists mmcd;show databases;"
+			_enter
+			if [ "$?" == "0" ];then
+				# 获取手机号
+				phone=$(dialog --clear --title "请输入你的手机号码" \
+				--inputbox "共11位" 8 50 \
+				3>&1 1>&2 2>&3 3>&-)
+				random=("A" "B" "C" "D" "E" "F")
+				A1=${random[$[$RANDOM%6]]} ; A2=${random[$[$RANDOM%6]]} ; A3=${random[$[$RANDOM%6]]} ; A4=${random[$[$RANDOM%6]]} ; N1=$[$RANDOM%10] ; N2=$[$RANDOM%10] ; N3=$[$RANDOM%10] ; N4=$[$RANDOM%10]
+				device="${A1}${A2}652F2E${N1}99${N2}31A5C38${A3}B6B${A4}F3${N3}F75${N4}F"
+				appid=20171108
+
+				mysql -uroot -p${password} -e "CREATE USER  if not exists 'mmcd'@'localhost' IDENTIFIED BY '123456';"
+				mysql -uroot -p${password} -e "GRANT ALL ON mmcd.* TO 'mmcd'@'localhost';"
+				# 充电桩信息
+				mysql -uroot -p${password} -e "use mmcd;create table if not exists msg(sno int(5), coding bigint(50), name varchar(100));"
+				# 用户信息
+				mysql -uroot -p${password} -e "use mmcd;create table if not exists user(phone bigint(50), dev varchar(200), appid bigint(50));"
+				mysql -uroot -p${password} -e "use mmcd; insert into user values(${phone}, \"${device}\", $appid);"
+				_msg W "用户信息"
+				mysql -ummcd -p123456 -e "use mmcd; select * from user;"
+				# Login 
+				mysql -uroot -p${password} -e "use mmcd;create table if not exists login(sno int(5),header varchar(200));"
+				break
+			else
+				_msg E "创建mmcd数据库失败！请检查数据库是否在运行 或 密码是否正确"
+				_enter
+			fi
+		done
+		# 录入充电桩信息
+		for x in $(seq 0 $((${#AllNum[@]}-1)))
+		do
+			mysql -ummcd -p123456 -e "use mmcd; insert into msg values($(($x+1)), ${AllNum[$x]}, \"${Message[$x]}\");"
+		done
+		_msg W "充电桩信息"
+		mysql -ummcd -p123456 -e "use mmcd; select * from msg;"
+		# 录入请求头
+		for x in $(seq 0 $((${#Login[@]}-1)))
+		do
+			mysql -ummcd -p123456 -e "use mmcd; insert into login values($(($x+1)),'${Login[$x]}');"
+		done
+		_msg W "请求头信息"
+		mysql -ummcd -p123456 -e "use mmcd; select * from login;"
+
+		_msg I "猛犸充电配置成功！"
+		_enter
+	}
+	
+	_check(){
+		clear
+		mysql -ummcd -p123456 -e "use mmcd; select count(*) from msg;" > /dev/null
+		[ ! "$?" == "0" ] && _msg E "请先配置猛犸充电" && _enter && return 0
+		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from msg;")
+		[ ! $n -gt 1 ] &&  _msg E "请先配置猛犸充电" && _enter && return 0
+		# download HMacMd5Utils.java
+		cd "$HOME/.config/td/"
+		if [ ! -e "HMacMd5Utils.java" ];then
+			_github_mirror_speed_up raw $HMacMd5Utils_RAW
+			_command "wget -c" "$url"
+		fi
+		# 
+		
+		# Login 获取cookie
+		phone=$(mysql -N -ummcd -p123456 -e "use mmcd; select phone from user;")
+		deviceId=$(mysql -N -ummcd -p123456 -e "use mmcd; select dev from user;")
+		appid=$(mysql -N -ummcd -p123456 -e "use mmcd; select appid from user;")
+		url="mobile.mamcharge.com/applet/api/applet/sendSMSCaptcha"
+		data="{\"nationalCode\":\"86\",\"phoneNum\":\"${phone}\",\"type\":\"1\"}"
+		javac HMacMd5Utils.java
+		s=$(java HMacMd5Utils $phone)
+		timestamp=$(echo $s | awk '{print $1}')
+		signature=$(echo $s | awk '{print $2}')
+		# Content-Length=57
+		H=()
+		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from login;")
+		for x in $(seq 0 $(($n-1)))
+		do
+			H[$x]="$(mysql -N -ummcd -p123456 -e "use mmcd; select header from login limit $x,1;")"
+		done
+		_msg W "请求验证码"
+		curl -H "${H[0]}" -H "${H[1]}" -H "${H[2]}" -H "deviceId: $deviceId" -H "appId: $appid" -H "${H[3]}" -H "${H[4]}" -H "${H[5]}" -H "timestamp: $timestamp" -H "signature: $signature" -H "${H[6]}" -H "${H[7]}" -H "${H[8]}" -H "Content-Length: 57" -H "${H[10]}" -H "${H[11]}" -H "${H[12]}" -H "${H[13]}" -H "${H[14]}" -H "${H[15]}" -X POST -d "$data" $url > ./cookie
+		AuthCode=$(dialog --clear --title "请输入验证码" \
+		--inputbox "注意查收" 8 50 \
+		3>&1 1>&2 2>&3 3>&-)
+		AuthCode=$(echo $AuthCode | sed "s# ##g")
+		
+		_enter
+	}
+	
+
+
+    OPTIONS=(
+         1 "配置猛犸充电"
+         2 "查询"
+         3 "远程充电"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→猛犸充电" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _check
+			;;
+		3)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 # main
 _otherOP(){
@@ -1442,7 +1695,7 @@ _otherOP(){
     		_node _filebrowser
     		;;
     	5)
-    		echo
+    		_node _mmcd
     		;;
     	6)
     		_node _UnblockNeteaseMusic

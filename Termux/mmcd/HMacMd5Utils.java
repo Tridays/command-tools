@@ -77,9 +77,13 @@ public class HMacMd5Utils {
     public static void main(String[] args) {
         String pno = args[0];
         long millis = System.currentTimeMillis();
-        String a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
-        System.out.println(millis);
-        System.out.println(a);
+        String a;
+        if ( args.length == 1 ){
+        	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
+        }else{
+        	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"code\":\""+ args[1] + "\",\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
+        }
+        System.out.println(millis + " " + a);
     }
 }
 
