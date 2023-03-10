@@ -12,7 +12,7 @@ UNBLOCK_NETEASE_MUSIC_CLONE="https://github.com/nondanee/UnblockNeteaseMusic"
 MUSIC_DL_CLONE="https://github.com/0xHJK/music-dl.git"
 WIKIJS_RELEASE="https://github.com/requarks/wiki/releases/download/v2.5.297/wiki-js.tar.gz"
 WORDPRESS="https://cn.wordpress.org/wordpress-6.1.1-zh_CN.zip"
-
+TOMCAT_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/tomcat/tomcat.zip"
 
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
 # 语言安装
@@ -240,9 +240,21 @@ _sources(){
 #--------------------------------------------- 2级菜单目录 ---------------------------------------------
 
 _filebrowser(){
-	i(){
-		_checkInstall "$filebrowserPath"
-		[ -z "$(dpkg -l | grep termux-services)" ]&&_command "pkg i " "termux-services " "-y"
+	filebrowserPath="$PREFIX/opt/filebrowser"
+	_i(){
+		clear
+		echo -e "\n\n$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}filebrowser在指定目录中提供了一个web文件管理界面，它可以用于上传、删除、预览、重命名和编辑文件。
+			${GREEN}官网：${WHITE}https://github.com/filebrowser/filebrowser
+			EOF
+		)"
+		# install filebrowser
+		_checkInstall "$filebrowserPath"  && _stop && rm -rf "$PREFIX/var/service/filebrowser" || return 0
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
 		mkdir -p $filebrowserPath
 		cd $filebrowserPath
 		_github_mirror_speed_up release $FILE_BROWSER_TAR_GZ_RELEASE
@@ -250,49 +262,62 @@ _filebrowser(){
 		tar -zxvf filebrowser.tar.gz
 		chmod +x filebrowser
 		rm filebrowser.tar.gz
-		exec $filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config init &
-		exec $filebrowserPath/filebrowser users add root 888888 --perm.admin -d $filebrowserPath/filebrowser.db &
-		exec $filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config set --address 127.0.0.1 --port 1234 --root "/data/data/com.termux/files/home" --locale zh-cn &
-		sleep 2
-		msg I "安装完成！"
+		$filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config init 
+		$filebrowserPath/filebrowser users add root 123456 --perm.admin -d $filebrowserPath/filebrowser.db 
+		$filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config set --address 127.0.0.1 --port 1234 --root "/data/data/com.termux/files/home" --locale zh-cn 
+		_msg I "安装完成！"
 		_enter
 	}
-		start(){
-				[ ! -e "$filebrowserPath" ]&&echo -e "${YELLOW}请先安装！${WHITE}"&&_enter&&return
-				_command "pkill filebrowser"
-				nohup $filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db &
-				echo -e "${GREEN}访问网址：http://127.0.0.1:1234${WHITE}"
-				echo -e "${GREEN} 账号：root 密码：888888${WHITE}"
-				echo -e "${GREEN}小提示：服务开机自启。（留termux后台运行即可）${WHITE}"
-				_enter
-			}
-		stop(){
-			[ ! -e "$filebrowserPath" ]&&echo -e "${YELLOW}请先安装！${WHITE}"&&_enter&&return
-				_command "pkill filebrowser"
-				_enter
-			}	
-			
-	filebrowserPath="$HOME/.filebrowser"
-	    OPTIONS=(
- 	        1 "安装filebrowser"
-	        2 "开启"
-	        3 "关闭"
-	        4 "<<返回上级目录>>")
-	    _dialog "首页→其他选项→filebrowser文件管理器" "请选择" $OPTIONS
-	    case $op in
-	    	1)
-	    		i
-	    		;;
-	    	2)
-	    		start
-	    		;;
-	    	3)
-	    		stop
-	    		;;
-	    	*)
-    		return 0
-    		;;
-	    esac
+	_start(){
+		clear
+		[ ! -e "$filebrowserPath" ] && _msg E "请先安装filebrowser！" && _enter && return 0
+		path="$PREFIX/var/service/filebrowser"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			exec $filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db 
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable filebrowser"
+		echo -e "${GREEN}访问网址：http://127.0.0.1:1234${WHITE}"
+		echo -e "${GREEN} 账号：root 密码：123456${WHITE}"
+		_enter
+	}
+	_stop(){
+		[ ! -e "$filebrowserPath" ] && _msg E "请先安装filebrowser！" && _enter && return 0
+		_command "sv-disable filebrowser"
+		_enter
+	}
+    OPTIONS=(
+         1 "安装filebrowser"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→filebrowser" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
 }
 _UnblockNeteaseMusic(){
 	##解锁网易云
@@ -387,62 +412,73 @@ _music-dl(){
 }
 
 _vscode-server(){
-	i(){
-		[ -n "$(dpkg -l | grep code-server)" ]&&echo -e "${YELLOW}本地已安装有，如需重新安装请先卸载${WHITE}"&&_enter&&return
-		echo -e "${YELLOW}如果网速过慢，请科学上网。${WHITE}"
-		_command "pkg i -y" "tur-repo code-server"
-		echo -e "${GREEN}安装完成！${WHITE}"
-		_enter
-	}
-	d(){
-		_command "pkg remove " "tur-repo code-server" "-y"
-		echo -e "${GREEN}移除完成！${WHITE}"
-		_enter
-	}
-	switch(){
-	    OPTIONS=(
-	         1 "开启"
-	         2 "关闭"
-	         3 "<<返回上级目录>>")
-	    _dialog "首页→其他选项→VScode-server→开启/关闭" "请选择" $OPTIONS
-		case $op in
-			1)
-				[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
-				mkdir -p $PREFIX/var/service/code-server/log
-				cat<<-EOF > $PREFIX/var/service/code-server/run
-				#!/data/data/com.termux/files/usr/bin/sh
-				code-server
-				EOF
-				
-				cat<<-EOF > $PREFIX/var/service/code-server/log/run
-				#!/data/data/com.termux/files/usr/bin/sh
-				svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
-				exec "\${svlogger}" "\$@"
-				EOF
-				
-				chmod +x $PREFIX/var/service/code-server/run &&chmod +x $PREFIX/var/service/code-server/log/run
-				_command "sv-enable code-server"
-				echo -e "${YELLOW}\n-------------code-server配置文件-------------${WHITE}"
-				cat $HOME/.config/code-server/config.yaml
-				echo -e "${YELLOW}---------------------------------------------------${WHITE}"
-				_command "sv status code-server"
-				echo -e "${GREEN}小提示：服务开机自启。（留termux后台运行即可）${WHITE}"
-				_enter
-				;;
-			2)
-				sv-disable code-server
-				sv status code-server
-				pkill code-server
-				kill -9 $(ps -ef | grep code-server | grep -v grep | awk -F " " '{print $2}')
-				rm -rf $PREFIX/var/service/code-server
-				_enter
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}基于vscode.dev的网页版vscode开发了官方的code-server
+			${GREEN}官网：${WHITE}https://github.com/coder/code-server
+			EOF
+		)"
+		# install TreeSoft
+		if [ -n "$(dpkg -l | grep code-server)" ];then
+			_msg W "本地已安装VScode-server"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)
+				_stop
+				_command "apt purge" "code-server" "-y"
+				rm -rf "$PREFIX/var/service/VScode-server"
 				;;
 			*)
 				return 0
 				;;
-		esac
+			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_command "pkg i -y" "tur-repo code-server"
+		_config
+		_msg I "安装完成！"
+		_enter
 	}
-	config(){
+	_start(){
+		clear
+		[ -z "$(dpkg -l | grep code-server)"  ] && _msg E "请先安装VScode-server！" && _enter && return 0
+		path="$PREFIX/var/service/VScode-server"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			code-server
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable VScode-server"
+		echo -e "${YELLOW}\n-------------VScode-server配置文件-------------${WHITE}"
+		cat $HOME/.config/code-server/config.yaml
+		echo -e "${YELLOW}---------------------------------------------------${WHITE}"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		[ -z "$(dpkg -l | grep code-server)"  ] && _msg E "请先安装VScode-server！" && _enter && return 0
+		_command "sv-disable VScode-server"
+		_enter
+	}
+	_config(){
+		[ -z "$(dpkg -l | grep code-server)"  ] && _msg E "请先安装VScode-server！" && _enter && return 0
 		address=$(dialog --clear --title "code-server连接地址" \
 		--inputbox "输入你的地址(不填为默认值)
 		([默认127.0.0.1])" 8 50 \
@@ -451,9 +487,9 @@ _vscode-server(){
 		
 		port=$(dialog --clear --title "code-server连接端口" \
 		--inputbox "输入你的端口(不填为默认值)
-		([默认8080])" 8 50 \
+		([默认8050])" 8 50 \
 		3>&1 1>&2 2>&3 3>&-)
-		[ -z "$port" ]&&port=8080
+		[ -z "$port" ]&&port=8050
 		
 		password=$(dialog --clear --title "code-server连接密码" \
 		--inputbox "输入你的密码(不填为默认值)
@@ -461,7 +497,7 @@ _vscode-server(){
 		3>&1 1>&2 2>&3 3>&-)
 		
 		auth=none
-		[ -z "$password" ]&&auth=password
+		[ -n "$password" ]&&auth=password
 		
 		cat<<-EOF > $HOME/.config/code-server/config.yaml
 		bind-addr: $address:$port
@@ -475,41 +511,126 @@ _vscode-server(){
 		echo -e "${GREEN}小提示：关闭后启动配置生效${WHITE}"
 		_enter
 	}
-	main(){
-	    OPTIONS=(
-	         1 "安装/卸载code-server"
-	         2 "开启/关闭"
-	         3 "修改配置文件"
-			4 "<<返回上级目录>>")
-	    _dialog "首页→其他选项→VScode-server" "请选择" $OPTIONS
-		case $op in
-			1)
-				OPTIONS=(
-			        1 "安装"
-			        2 "卸载")
-			    _dialog "首页→其他选项→VScode-server→安装/卸载" "请选择" $OPTIONS
-				case $op in
-					1)
-						i
-						;;
-					2)
-						d
-						;;
-					esac
-				;;
-			2)
-				switch
-				;;
-			3)
-				config
+
+    OPTIONS=(
+         1 "安装｜卸载VScode-server"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "修改配置文件"
+         5 "<<返回上级目录>>")
+   _dialog "首页→其他选项→VScode-server" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			_node _stop
+			;;
+		4)
+			_node _config
+			;;		
+		*)
+			return 0
+			;;
+	esac
+
+}
+
+_Alist(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}一款支持多种存储的目录文件列表程序，支持 web 浏览与 webdav，后端基于gin，前端使用react。
+			${GREEN}官网：${WHITE}https://github.com/alist-org/alist
+			EOF
+		)"
+		# install TreeSoft
+		if [ -n "$(dpkg -l | grep alist)" ];then
+			_msg W "本地已安装Alist"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)
+				_stop
+				_command "apt purge" "alist" "-y"
+				rm -rf "$PREFIX/var/service/Alist"
+				rm -rf $PREFIX/bin/data
 				;;
 			*)
-	    		return 0
- 		   		;;
+				return 0
+				;;
 			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_command "pkg i -y" "alist"
+		_msg I "安装完成！"
+		_enter
 	}
-	main
+	_start(){
+		clear
+		[ -z "$(dpkg -l | grep alist)"  ] && _msg E "请先安装Alist！" && _enter && return 0
+		path="$PREFIX/var/service/Alist"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/{log,data}
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			alist server --data $PREFIX/var/service/Alist/data
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable Alist"
+		echo -e "${YELLOW}\n-------------配置信息-------------${WHITE}"
+		alist admin --data $PREFIX/var/service/Alist/data
+		cat $PREFIX/var/service/Alist/data/config.json | grep port
+		echo -e "${YELLOW}---------------------------------------------------${WHITE}"	
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		clear
+		[ -z "$(dpkg -l | grep alist)"  ] && _msg E "请先安装Alist！" && _enter && return 0
+		_command "sv-disable Alist"
+		_enter
+	}
+	OPTIONS=(
+         1 "安装｜卸载Alist"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→Alist" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
 }
+
+
+
 _vimIDE(){
 	coc(){
 		mkdir -p ~/.vim/{autoload,plugged}  ~/.config/coc/extensions/coc-java-data/server/
@@ -588,7 +709,7 @@ _vimIDE(){
 }
 
 _nvimIDE(){
-	i(){
+	_i(){
 		clear
 		echo -e "$(
 			cat <<-EOF
@@ -677,7 +798,6 @@ _nvimIDE(){
 		##从github下载插件
 		_msg I "请确保你的网络能够访问到 http://github.com ！"
 		_enter
-		sleep 1
 		
 		##下载jdk11
 		if [  ! -e "$PREFIX/opt/openjdk-11.0.12" ];then
@@ -726,15 +846,10 @@ _nvimIDE(){
 		_enter
 		echo -e "${GREEN} 隐藏termux底部额外键： ${RED}按手机音量键+ 再按 k 键${GREEN}（真正全屏！）${WHITE}"
 		echo -e "${GREEN} 如果下载失败，请多执行安装几次，确保插件全部安装完毕。${WHITE}"
-		# echo -e "${GREEN} ●MySQL数据库：$PREFIX/var/lib/mysql${WHITE}"
-		# echo -e "${GREEN}     启动MySQL服务：nohup mysqld & 或 nohup mariadbd &${WHITE}"
-		# echo -e "${GREEN}     关闭MySQL服务：pkill mysqld 或 pkill mariadbd${WHITE}"
-		# echo -e "${GREEN}     初次登陆：mysql -u root${WHITE}"
-		# echo -e "${GREEN}     初始化密码：mysqladmin -u root password 123456${WHITE}"
 		echo -e "${GREEN} neovim IDE已准备就绪！请打开它吧。${WHITE}"
 		_enter;_enter
 	}
-	d(){
+	_d(){
 		_msg W "你确定要卸载吗？［回车两次卸载］"
 		_enter;_enter
 		_command "pkg remove" "neovim" "-y"
@@ -743,7 +858,7 @@ _nvimIDE(){
 		_msg I "neovim IDE卸载完毕！"
 		_enter
 	}
-	ud(){
+	_ud(){
 		[ ! -e "$HOME/.config/nvim" ] && _msg W "请先安装nvim IDE！" && return 0
 		_msg I "测试网络连通性……"
 		ping -c 3 gitee.com >/dev/null 2>&1 
@@ -801,13 +916,13 @@ _nvimIDE(){
    _dialog "nim IDE v0.5" "请选择" $OPTIONS
     case $op in
    		1)
-   			i
+   			_node _i
    			;;
 		2)
-			d
+			_node _d
 			;;
 		3)
-			ud
+			_node _ud
 			;;
 		*)
 			return 0
@@ -833,6 +948,7 @@ _update(){
 
 _wikijs(){
 	_i(){
+		clear
 		echo -e "$(
 			cat<<-EOF
 			${GREEN}简介：${WHITE}Wiki.js 是一个基于 NodeJS 的现代、轻量级和强大的 wiki 应用程序。较适合做小团队的知识库，一方面适合管理和阅读，另一方面还能协同创作。
@@ -848,14 +964,14 @@ _wikijs(){
 			\t\t● 16.0.0≤ node <17.0.0  (推荐)
 			EOF
 		)"
+		_checkInstall "$PREFIX/opt/wiki" && _stop && rm -rf "$PREFIX/var/service/wiki" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		
 		# install wiki.js
-		_checkInstall "$HOME/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
-		mkdir "$HOME/wiki"
-		cd "$HOME/wiki"
+		mkdir "$PREFIX/opt/wiki"
+		cd "$PREFIX/opt/wiki"
 		_github_mirror_speed_up release $WIKIJS_RELEASE
 		_command "wget -c" "$url"
 		tar -zxvf wiki-js.tar.gz
@@ -898,7 +1014,7 @@ _wikijs(){
 				fi
 			done
 			# 配置wiki.js文件
-			cd $HOME/wiki
+			cd $PREFIX/opt/wiki
 			cp config.sample.yml config.yml
 			sed -i "s#type: postgres#type: mysql#g;s#port: 5432#port: 3306#g;s#user: wikijs#user: root#g;s#pass: wikijsrocks#pass: $password#g" config.yml
 		# MariaDB
@@ -911,16 +1027,16 @@ _wikijs(){
 		_msg I "wiki.js安装成功！"
 		_enter
 	}
-	_open(){
+	_start(){
 		clear
-		[ ! -e "$HOME/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
+		[ ! -e "$PREFIX/opt/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
 		path="$PREFIX/var/service/wiki"
 		if [ ! -e "${path}" ];then
 			mkdir -p ${path}/log
 			# exec
 			cat<<-EOF>${path}/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			cd "$HOME/wiki"
+			cd "$PREFIX/opt/wiki"
 			exec $PREFIX/opt/nodejs-16/bin/node server
 			EOF
 			chmod +x ${path}/run
@@ -954,11 +1070,10 @@ _wikijs(){
 		_msg W "日志：$PREFIX/var/log/sv/"
 		_enter
 	}
-	_close(){
+	_stop(){
 		clear
 		[ ! -e "$HOME/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
 		_command "sv-disable wiki"
-		_msg W "日志：$PREFIX/var/log/sv/"
 		_enter
 	}
     OPTIONS=(
@@ -969,13 +1084,13 @@ _wikijs(){
    _dialog "首页→其他选项→Wiki.js" "请选择" $OPTIONS
     case $op in
    		1)
-   			_i
+   			_node _i
    			;;
 		2)
-			_open
+			_node _start
 			;;
 		3)
-			_close
+			_node _stop
 			;;
 		*)
 			return 0
@@ -985,6 +1100,7 @@ _wikijs(){
 
 _wordpress(){
 	_i(){
+		clear
 		echo -e "$(
 			cat<<-EOF
 			${GREEN}简介：${WHITE}WordPress是一款个人博客系统，并逐步演化成一款内容管理系统
@@ -996,13 +1112,14 @@ _wordpress(){
 			\t\t●nginx
 			EOF
 		)"
+		_checkInstall "$PREFIX/opt/wordpress" && _stop && rm -rf $PREFIX/etc/nginx/config/wordpress.conf || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		[ -z "$(command -v php)" ] && _command "pkg i -y" "php"
 		[ -z "$(command -v php-fpm)" ] && _command "pkg i -y" "php-fpm"
+		[ -z "$(command -v nginx)" ] && _command "pkg i -y" "nginx"
 		# install wordpress
-		_checkInstall "$PREFIX/opt/wordpress" && rm -rf "$PREFIX/var/service/wordpress" || return 0
 		cd "$PREFIX/opt/"
 		_command "wget -c" "$WORDPRESS" "-O wordpress.zip"
 		unzip wordpress.zip
@@ -1041,7 +1158,7 @@ _wordpress(){
 		file="$PREFIX/etc/nginx/nginx.conf"
 		if [ -z "$(cat $file | grep 'include config/*.conf;')" ];then
 			row=$(cat $file |grep -n } | sed -n 12p | awk -F ":" '{print $1}')
-			sed -i "$(($row-1)){s/^/include config/*.conf;/}" $file
+			sed -i "$(($row-1))i include config/*.conf;" $file
 		fi
 		mkdir -p $PREFIX/etc/nginx/config
 		cat<<-EOF> $PREFIX/etc/nginx/config/wordpress.conf
@@ -1053,8 +1170,9 @@ _wordpress(){
 			        root   $PREFIX/opt/wordpress;		# 服务1的前端文件存放的地址
 			        index  index.php index.html index.htm;									# 指定默认访问的页面
 			    }
-			    location ~ \\.php$ {
+			    location ~ .php/$ {
 			    root  $PREFIX/opt/wordpress;
+			    index  index.php index.html index.htm;
 			    fastcgi_pass   unix:$PREFIX/var/run/php-fpm.sock;
 			    fastcgi_index  index.php;
 			    fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
@@ -1065,7 +1183,7 @@ _wordpress(){
 		_msg I "wordpress安装成功！"
 		_enter		
 	}
-	_open(){
+	_start(){
 		clear
 		[ ! -e "$PREFIX/opt/wordpress" ] && _msg E "请先安装wordpress！" && _enter && return 0
 		_command "sv-enable mysqld"
@@ -1074,7 +1192,7 @@ _wordpress(){
 		_msg W "网站地址：localhost:8010"
 		_enter
 	}
-	_close(){
+	_stop(){
 		clear
 		[ ! -e "$PREFIX/opt/wordpress" ] && _msg E "请先安装wordpress！" && _enter && return 0
 		_command "sv-disable php-fpm"
@@ -1089,13 +1207,13 @@ _wordpress(){
    _dialog "首页→其他选项→wordpress" "请选择" $OPTIONS
     case $op in
    		1)
-   			_i
+   			_node _i
    			;;
 		2)
-			_open
+			_node _start
 			;;
 		3)
-			_close
+			_node _stop
 			;;
 		*)
 			return 0
@@ -1103,9 +1221,193 @@ _wordpress(){
 	esac
 }
 
+_phpMyAdmin(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}phpMyAdmin 是由 PHP 编写的用于管理 MySQL 或 MariaDB 等数据服务器的免费软件工具
+			${GREEN}官网：${WHITE}https://www.phpmyadmin.net
+			${RED}环境要求：${WHITE}
+			\t\t●MySQL
+			\t\t●PHP
+			\t\t●php-fpm
+			\t\t●nginx
+			EOF
+		)"
+		_checkInstall "$PREFIX/opt/phpMyAdmin" && _stop && rm -rf $PREFIX/etc/nginx/config/phpMyAdmin.conf || return 0
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		[ -z "$(command -v php)" ] && _command "pkg i -y" "php"
+		[ -z "$(command -v php-fpm)" ] && _command "pkg i -y" "php-fpm"
+		[ -z "$(command -v nginx)" ] && _command "pkg i -y" "nginx"
+		# install phpMyAdmin
+		cd "$PREFIX/opt/"
+		_command "wget -c" " https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip" " -O phpMyAdmin.zip"
+		unzip phpMyAdmin.zip
+		mv phpMyAdmin-* phpMyAdmin
+		rm -rf phpMyAdmin.zip
+		cd phpMyAdmin
+		cp config.sample.inc.php config.inc.php
+		sed -i "s#localhost#127.0.0.1#g" config.inc.php
+		
+		# nginx配置
+		file="$PREFIX/etc/nginx/nginx.conf"
+		if [ -z "$(cat $file | grep 'include config/\*.conf;')" ];then
+			row=$(cat $file |grep -n } | sed -n 12p | awk -F ":" '{print $1}')
+			sed -i "$(($row-1))i include config/*.conf;" $file
+		fi
+		mkdir -p $PREFIX/etc/nginx/config
+		cat<<-EOF> $PREFIX/etc/nginx/config/phpMyAdmin.conf
+			server {
+			    listen       8020;
+			    #listen       [::]:80;			ipv6
+			    server_name  127.0.0.1;
+			    location / {
+			        root   $PREFIX/opt/phpMyAdmin;		# 服务1的前端文件存放的地址
+			        index  index.php index.html index.htm;									# 指定默认访问的页面
+			    }
+			    location ~ .php$ {
+			    root  $PREFIX/opt/phpMyAdmin;
+			    index  index.php index.html index.htm;
+			    fastcgi_pass   unix:$PREFIX/var/run/php-fpm.sock;
+			    fastcgi_index  index.php;
+			    fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
+			    include  fastcgi_params;
+		        }
+		    }
+		EOF
 
+		_msg I "phpMyAdmin安装成功！"
+		_enter
+	}
+	_start(){
+		clear
+		[ ! -e "$PREFIX/opt/phpMyAdmin" ] && _msg E "请先安装phpMyAdmin！" && _enter && return 0
+		_command "sv-enable mysqld"
+		_command "sv-enable php-fpm"
+		_command "sv-enable nginx"
+		_msg W "网站地址：localhost:8020"
+		_enter
+	}
+	_stop(){
+		clear
+		[ ! -e "$PREFIX/opt/phpMyAdmin" ] && _msg E "请先安装phpMyAdmin！" && _enter && return 0
+		_command "sv-disable php-fpm"
+		_command "sv-disable nginx"
+		_enter
+	}
+    OPTIONS=(
+         1 "安装phpMyAdmin"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→phpMyAdmin" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
+_TreeSoft(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}TreeSoft数据库管理系统，是使用java开发的，可以布署于window,linux,mac等操作系统。采用web方式管理数据库，一次布署，到处使用！同时支持 MySQL，Oracle，DB2，PostgreSQL，SQL Server，mongoDB，Hive，SAP HANA，Sybase，Caché ，达梦DM7，神通等异构数据库。
+			${GREEN}官网：${WHITE}http://www.treesoft.cn/dms.html
+			${RED}环境要求：${WHITE}
+			\t\t●jdk-1.8及以上（脚本默认使用openjdk-17）
+			\t\t●tomcat 9.0.0及以上
+			EOF
+		)"
+		# install TreeSoft
+		_checkInstall "$PREFIX/opt/tomcat" && _stop && rm -rf "$PREFIX/var/service/tomcat" || return 0
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 
+		[ -z "$(command -v java)" ] && _command "pkg i -y" "openjdk-17"
+		cd "$PREFIX/opt/"
+		_github_mirror_speed_up release $TOMCAT_RELEASE
+		_command "wget -c" "$url"
+		unzip tomcat.zip
+		rm -rf tomcat.zip
+		chmod 775 $PREFIX/opt/tomcat/bin/catalina.sh
+		chmod 775 $PREFIX/opt/tomcat/bin/startup.sh
+		chmod 775 $PREFIX/opt/tomcat/bin/shutdown.sh
+		_msg I "TreeSoft安装成功！"
+		_enter
+	}
+	_start(){
+		clear
+		[ ! -e "$PREFIX/opt/tomcat"  ] && _msg E "请先安装TreeSoft！" && _enter && return 0
+		path="$PREFIX/var/service/tomcat"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			if [ -z "\$(ps -ef | grep tomcat/ | grep -v grep)" ];then
+			    exec $PREFIX/opt/tomcat/bin/startup.sh
+			    read op
+			fi
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable tomcat"
+		_msg W "网站地址：localhost:8085/treesoft"
+		_msg I "用户名：admin"
+		_msg I "地址：treesoft"
+		_msg I "验证码：随便填！！"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		clear
+		[ ! -e "$PREFIX/opt/tomcat"  ] && _msg E "请先安装TreeSoft！" && _enter && return 0
+		_command "sv-disable tomcat"
+		_enter
+	}
+    OPTIONS=(
+         1 "安装TreeSoft"
+         2 "启动服务"
+         3 "关闭服务"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→TreeSoft" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 # main
@@ -1120,8 +1422,8 @@ _otherOP(){
          7 "音乐下载器music-dl"
          8 "Wiki.js"
          9 "wordpress"
-         10 ""
-         11 ""
+         10 "phpMyAdmin"
+         11 "TreeSoft"
          12 "MySQL"
          13 "<<返回上级目录>>"
          14 "退出脚本")
@@ -1131,7 +1433,7 @@ _otherOP(){
     		_node _vscode-server
     		;;
     	2)
-    		echo
+    		_node _Alist
     		;;
     	3)
     		_node _nvimIDE
@@ -1155,10 +1457,10 @@ _otherOP(){
     		_node _wordpress
     		;;
     	10)
-    		echo
+    		_node _phpMyAdmin
     		;;
     	11)
-    		echo
+    		_node _TreeSoft
     		;;    	
 		12)
     		_node _mysql
