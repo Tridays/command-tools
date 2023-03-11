@@ -80,13 +80,14 @@ public class HMacMd5Utils {
         String a;
         if ( args.length == 1 ){
         	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
+        }else if ( args.length == 2 ){
+        	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"code\":\""+ args[1] + "\",\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\"}"+millis);  
         }else{
-        	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"code\":\""+ args[1] + "\",\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
+        	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"pno\":\""+pno+"\"}"+millis);
         }
         System.out.println(millis + " " + a);
     }
 }
-
 
 
 

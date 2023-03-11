@@ -14,39 +14,48 @@ MUSIC_DL_CLONE="https://github.com/0xHJK/music-dl.git"
 WIKIJS_RELEASE="https://github.com/requarks/wiki/releases/download/v2.5.297/wiki-js.tar.gz"
 WORDPRESS="https://cn.wordpress.org/wordpress-6.1.1-zh_CN.zip"
 TOMCAT_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/tomcat/tomcat.zip"
-
+FISH_RAW="https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install"
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
-# 语言安装
-_language(){
-    main(){
-    	OPTIONS=(
-			 1 "Java"
-             2 "Python"
-             3 "C / C++"
-             4 "JavaScript / node"
-             5 "go"
-             6 "tomcat (jsp)"
-             7 "<<返回上级目录>>")
-        _dialog "首页→配置语言环境" "请选择" $OPTIONS
-        
-    }
-    main
-}
-
 # 终端美化
 _fish(){
-    i(){
-        _status fish
-        [ "$?" != "0" ]&&_check fish
-    }
-    d(){
-    	_command "pkg remove" "fish" "-y"
-    }
-    switch(){
-    	 OPTIONS=(
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}
+			${GREEN}官网：${WHITE}
+			EOF
+		)"
+		# install fish
+		if [ -n "$(dpkg -l | grep fish)" ];then
+			_msg W "本地已安装fish"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)
+				_stop
+				_command "apt purge" "fish" "-y"
+				;;
+			*)
+				return 0
+				;;
+			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_command "pkg i -y" "fish"
+		_msg I "安装完成！"
+		_enter
+	}
+	_switch(){
+		clear
+		[ -z "$(dpkg -l | grep fish)"  ] && _msg E "请先安装fish！" && _enter && return 0
+		OPTIONS=(
              1 "开启"
              2 "关闭")
-		_dialog "首页→终端美化→fish→主题→开关" "请选择" $OPTIONS
+		_dialog "首页→终端美化→fish→开关" "请选择" $OPTIONS
 		case $op in
 			1)
 				_command "chsh -s fish"
@@ -57,14 +66,32 @@ _fish(){
 				_enter
 				;;
 		esac
-    }
-    theme(){
-    	fish <<< "omf list">/dev/null 2>&1
-    	[ "$?" != "0" ]&&curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish &
-		wait
-    	fish <<< "omf theme" >~/menu
+	}
+	_theme(){
+		clear
+		[ -z "$(dpkg -l | grep fish)"  ] && _msg E "请先安装fish！" && _enter && return 0
+    	shell=$(echo $SHELL | awk -F "/" '{print $NF}')
+    	if [ "$shell" == "fish" ];then 	
+	       omf list >/dev/null 2>&1
+	       status=$?
+	       types=1
+	    else
+	       	fish <<< "omf list">/dev/null 2>&1
+	       	status=$?
+	       	types=2
+    	fi
+    	
+    	# 安装omf
+    	if [ "$status" != "0" ];then
+    		rm -rf "$HOME/.local/share/omf"
+    		_github_mirror_speed_up raw $FISH_RAW
+    		_command "curl $url | fish "
+    	fi
+    	[ "$types" == "1" ] && omf theme >$HOME/menu
+    	[ "$types" == "2" ] && fish <<< "omf theme" >$HOME/menu
+    	
     	row=$(cat ~/menu | grep -n "Available" | awk -F ":" '{print $1}')
-    	sed -i "1,$row"d ~/menu
+    	sed -i "1,$row"d $HOME/menu
 		
 		count=1
 		count1=2
@@ -86,73 +113,52 @@ _fish(){
 			done
 		done < ~/menu
 		
+		
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
 		v=${thing[$op]}
 		OPTIONS=(
-			1 "安装启用${thing[$op]}"
-			2 "移除${thing[$op]}"
-			3 "取消")
-		_dialog "首页→终端美化→fish→主题→安装/卸载" "请选择" $OPTIONS
+			1 "启用${thing[$op]}"
+			2 "移除${thing[$op]}")
+		_dialog "首页→终端美化→fish→主题→启用/移除" "请选择" $OPTIONS
 		case $op in
 			1)
 				clear
-				fish <<< "omf install $v"
+		    	[ "$types" == "1" ] && omf install $v
+  			  	[ "$types" == "2" ] && fish <<< "omf install $v"
 				_enter
 				;;
 			2)
 				clear
-				fish <<< "omf remove $v"
+		    	[ "$types" == "1" ] && omf remove $v
+  			  	[ "$types" == "2" ] && fish <<< "omf remove $v"
 				_enter
 				;;
-			*)
-				return
-				;;
 		esac
-    }
-    main(){
-        OPTIONS=(
-             1 "安装/卸载fish"
-             2 "开启/关闭"
-             3 "主题"
-             4 "<<返回上级目录>>")
-             
-        _dialog "首页→终端美化→fish" "请选择" $OPTIONS
-        case $op in
-			1)
-				OPTIONS=(
-					1 "安装fish"
-					2 "卸载fish"
-					3 "<<返回上级目录>>")
-				_dialog "首页→终端美化→fish→安装/卸载" "请选择" $OPTIONS
-				case $op in
-					1)
-						i
-						;;
-					2)
-						d
-						;;
-					*)
-						return 0
-						;;
-					esac
-				;;
-			2)
-		        _status fish
-		        [ "$?" != "0" ]&&echo -e "${YELLOW}\n\n请先安装fish${WHITE}"&&return
-		        switch
-				;;
-			3)
-		        _status fish
-		        [ "$?" != "0" ]&&echo -e "${YELLOW}\n\n请先安装fish${WHITE}"&&return
-				theme
-				;;
-			4)
-				return
-				;;
-		esac
-    }
-    main
+	}
+	OPTIONS=(
+         1 "安装｜卸载fish"
+         2 "启用｜关闭"
+         3 "主题"
+         4 "<<返回上级目录>>")
+   _dialog "首页→其他选项→fish" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _switch
+			;;
+		3)
+			_node _theme
+			;;
+		*)
+			return 0
+			;;
+	esac
 }
+
+
+
 _style(){
     OPTIONS=(
          1 "背景颜色"
@@ -163,16 +169,16 @@ _style(){
     _dialog "首页→终端美化" "请选择" $OPTIONS
 	case $op in
 		1)
-			echo 
+			_msg W "功能暂时不开放"
 			;;
 		2)
-			echo 
+			_msg W "功能暂时不开放"
 			;;
 		3)
-			echo 
+			_msg W "功能暂时不开放"
 			;;
 		4)
-			_fish
+			_node _fish
 			;;
 	esac    
 }
@@ -300,7 +306,7 @@ _filebrowser(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装filebrowser"
+         1 "安装｜卸载filebrowser"
          2 "启动服务"
          3 "关闭服务"
          4 "<<返回上级目录>>")
@@ -353,7 +359,7 @@ _UnblockNeteaseMusic(){
 		_enter
 	}
 	    OPTIONS=(
- 	        1 "安装UnblockNeteaseMusic"
+ 	        1 "安装｜卸载UnblockNeteaseMusic"
 	        2 "开启"
 	        3 "关闭"
 	        4 "<<返回上级目录>>")
@@ -395,7 +401,7 @@ _music-dl(){
 		_enter
 	}
 	    OPTIONS=(
- 	        1 "安装Music-dl"
+ 	        1 "安装｜卸载Music-dl"
 	        2 "下载音乐"
 	        3 "<<返回上级目录>>")
 	    _dialog "首页→其他选项→全网音乐下载music-dl" "请选择" $OPTIONS
@@ -780,7 +786,7 @@ _nvimIDE(){
 		EOF
 
 		_command "pkg update -y"
-		_command "pkg i " "tar zip neovim git zig python nodejs openjdk-17* wget stylua maven gradle lua53 ripgrep sqlite termux-api clang lua-language-server mariadb php apache2 nginx php-fpm php-apache yarn graphviz tree golang composer" " -y"
+		_command "pkg i " "tar zip neovim git zig python nodejs openjdk-17* wget stylua maven gradle lua53 ripgrep termux-api clang lua-language-server php apache2 nginx php-fpm php-apache yarn graphviz tree golang composer" " -y"
 		_command "npm install -g " " eslint clangd bash-language-server vscode-langservers-extracted typescript typescript-language-server"
 		_command "pip install "  " black spell autopep8 prettier flake8 debugpy ptvsd neovim"
 		
@@ -809,9 +815,6 @@ _nvimIDE(){
 			rm -rf openjdk-11.0.12-aarch64.zip
 		fi
 		
-		##配置数据库
-		mysql_install_db --force	
-
 		##下载离线单词包 
 		if test -e "$HOME/.vim/dict/ultimate.db"; then
 		    _msg W "单词库已存在跳过下载！"
@@ -1201,7 +1204,7 @@ _wordpress(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装wordpress"
+         1 "安装｜卸载wordpress"
          2 "启动服务"
          3 "关闭服务"
          4 "<<返回上级目录>>")
@@ -1300,7 +1303,7 @@ _phpMyAdmin(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装phpMyAdmin"
+         1 "安装｜卸载phpMyAdmin"
          2 "启动服务"
          3 "关闭服务"
          4 "<<返回上级目录>>")
@@ -1389,7 +1392,7 @@ _TreeSoft(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装TreeSoft"
+         1 "安装｜卸载TreeSoft"
          2 "启动服务"
          3 "关闭服务"
          4 "<<返回上级目录>>")
@@ -1413,12 +1416,6 @@ _TreeSoft(){
 _mmcd(){
 		##所有设备的编码
 		AllNum=(
-		"6384906472"
-		"6384907232"
-		"6384906453"
-		"6384906426"
-		"6384906425"
-		"6384906458"
 		##
 		"6381715522"
 		"6381711269"
@@ -1450,20 +1447,11 @@ _mmcd(){
 		"6380500992"
 		"6380500951"
 		##
-		"6380603268"
-		"6380602604"
-		##
 		"6381711270"
 		"6381711273"
 		)
 		##对应编码信息
 		Message=(
-		"桂电花江校区国际学院A[最靠近门口]"
-		"桂电花江校区国际学院B[仲园食堂旁边]"
-		"桂电花江校区国际学院C[仲园食堂旁边]"
-		"桂电花江校区国际学院D[仲园食堂旁边]"
-		"桂电花江校区国际学院E[仲园食堂旁边]"
-		"桂电花江校区国际学院F[最靠里边]"
 		##
 		"D区宿舍前面斜坡A[离D区最远]"
 		"D区宿舍前面斜坡B"
@@ -1494,9 +1482,6 @@ _mmcd(){
 		"B区宿舍[右侧]充电车棚E"
 		"B区宿舍[右侧]充电车棚F"
 		"B区宿舍[右侧]充电车棚G[离中央食堂最远]"
-		##
-		"17教学楼两充电车棚A"
-		"17教学楼两充电车棚B"
 		##
 		"紫荆府"
 		"泰顺县香洲雅苑2018.10.18LA"
@@ -1539,7 +1524,8 @@ _mmcd(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		[ -z "$(command -v java)" ] && _command "pkg i -y" "openjdk-17"
-		[ -z "$(command -v sqlite3)" ] && _command "pkg i -y" "sqlite"
+		[ -z "$(command -v jq)" ] && _command "pkg i -y" "jq"
+		[ -z "`command -v qrencode`" ] && _command "pkg i -y" "libqrencode"
 		# MySQL
 		password=""
 		while :
@@ -1561,39 +1547,81 @@ _mmcd(){
 				A1=${random[$[$RANDOM%6]]} ; A2=${random[$[$RANDOM%6]]} ; A3=${random[$[$RANDOM%6]]} ; A4=${random[$[$RANDOM%6]]} ; N1=$[$RANDOM%10] ; N2=$[$RANDOM%10] ; N3=$[$RANDOM%10] ; N4=$[$RANDOM%10]
 				device="${A1}${A2}652F2E${N1}99${N2}31A5C38${A3}B6B${A4}F3${N3}F75${N4}F"
 				appid=20171108
-
+				
+				# 创建用户
 				mysql -uroot -p${password} -e "CREATE USER  if not exists 'mmcd'@'localhost' IDENTIFIED BY '123456';"
 				mysql -uroot -p${password} -e "GRANT ALL ON mmcd.* TO 'mmcd'@'localhost';"
+				
 				# 充电桩信息
 				mysql -uroot -p${password} -e "use mmcd;create table if not exists msg(sno int(5), coding bigint(50), name varchar(100));"
-				# 用户信息
-				mysql -uroot -p${password} -e "use mmcd;create table if not exists user(phone bigint(50), dev varchar(200), appid bigint(50));"
-				mysql -uroot -p${password} -e "use mmcd; insert into user values(${phone}, \"${device}\", $appid);"
-				_msg W "用户信息"
-				mysql -ummcd -p123456 -e "use mmcd; select * from user;"
+				# 录入充电桩信息
+				for x in $(seq 0 $((${#AllNum[@]}-1)))
+				do
+					mysql -ummcd -p123456 -e "use mmcd; insert into msg values($(($x+1)), ${AllNum[$x]}, \"${Message[$x]}\");"
+				done
+
 				# Login 
 				mysql -uroot -p${password} -e "use mmcd;create table if not exists login(sno int(5),header varchar(200));"
+				# 录入请求头
+				for x in $(seq 0 $((${#Login[@]}-1)))
+				do
+					mysql -ummcd -p123456 -e "use mmcd; insert into login values($(($x+1)),'${Login[$x]}');"
+				done
+
+				# 用户信息
+				mysql -uroot -p${password} -e "use mmcd;create table if not exists user(phone bigint(50), dev varchar(200), appid bigint(50), AppletUser varchar(200));"
+				cd "$HOME/.config/td/"
+				if [ ! -e "HMacMd5Utils.java" ];then
+					_github_mirror_speed_up raw $HMacMd5Utils_RAW
+					_command "wget -c" "$url"
+				fi
+				# Login 获取cookie
+				url="mobile.mamcharge.com/applet/api/applet/sendSMSCaptcha"
+				data="{\"nationalCode\":\"86\",\"phoneNum\":\"${phone}\",\"type\":\"1\"}"
+				javac HMacMd5Utils.java
+				s=$(java HMacMd5Utils $phone)
+				timestamp=$(echo $s | awk '{print $1}')
+				signature=$(echo $s | awk '{print $2}')
+				# Content-Length=57
+				H=()
+				n=$(mysql -N -uroot -p${password} -e "use mmcd; select count(*) from login;")
+				for x in $(seq 0 $(($n-1)))
+				do
+					H[$x]="$(mysql -N -uroot -p${password} -e "use mmcd; select header from login limit $x,1;")"
+				done
+				_msg W "请求验证码"
+				curl -H "${H[0]}" -H "${H[1]}" -H "${H[2]}" -H "deviceId: $deviceId" -H "appId: $appid" -H "${H[3]}" -H "${H[4]}" -H "${H[5]}" -H "timestamp: $timestamp" -H "signature: $signature" -H "${H[6]}" -H "${H[7]}" -H "${H[8]}" -H "Content-Length: 57" -H "${H[10]}" -H "${H[11]}" -H "${H[12]}" -H "${H[13]}" -H "${H[14]}" -H "${H[15]}" -X POST -d "$data" $url
+				AuthCode=$(dialog --clear --title "请输入验证码" \
+				--inputbox "注意查收" 8 50 \
+				3>&1 1>&2 2>&3 3>&-)
+				AuthCode=$(echo $AuthCode | sed "s# ##g")
+				# 获取cookie
+				url="mobile.mamcharge.com/applet/api/applet/loginOrRegister"
+				data="{\"code\":\"$AuthCode\",\"nationalCode\":\"86\",\"phoneNum\":\"$phone\"}"
+				javac HMacMd5Utils.java
+				s=$(java HMacMd5Utils $phone $AuthCode)
+				timestamp=$(echo $s | awk '{print $1}')
+				signature=$(echo $s | awk '{print $2}')
+				_msg W "获取cookie"
+				curl -H "${H[0]}" -H "${H[1]}" -H "${H[2]}" -H "deviceId: $deviceId" -H "appId: $appid" -H "${H[3]}" -H "${H[4]}" -H "${H[5]}" -H "timestamp: $timestamp" -H "signature: $signature" -H "${H[6]}" -H "${H[7]}" -H "${H[8]}" -H "Content-Length: 62" -H "${H[10]}" -H "${H[11]}" -H "${H[12]}" -H "${H[13]}" -H "${H[14]}" -H "${H[15]}" -X POST -d "$data" $url > ./cookie
+				# token
+				AppletUser=$(jq -r .data.token cookie)
+				# 保存用户信息
+				mysql -uroot -p${password} -e "use mmcd; insert into user values(${phone}, \"${device}\", $appid, \"$AppletUser\");"
 				break
 			else
 				_msg E "创建mmcd数据库失败！请检查数据库是否在运行 或 密码是否正确"
 				_enter
 			fi
 		done
-		# 录入充电桩信息
-		for x in $(seq 0 $((${#AllNum[@]}-1)))
-		do
-			mysql -ummcd -p123456 -e "use mmcd; insert into msg values($(($x+1)), ${AllNum[$x]}, \"${Message[$x]}\");"
-		done
+		_msg W "用户信息"
+		mysql -ummcd -p123456 -e "use mmcd; select * from user;"
 		_msg W "充电桩信息"
 		mysql -ummcd -p123456 -e "use mmcd; select * from msg;"
-		# 录入请求头
-		for x in $(seq 0 $((${#Login[@]}-1)))
-		do
-			mysql -ummcd -p123456 -e "use mmcd; insert into login values($(($x+1)),'${Login[$x]}');"
-		done
 		_msg W "请求头信息"
 		mysql -ummcd -p123456 -e "use mmcd; select * from login;"
 
+		
 		_msg I "猛犸充电配置成功！"
 		_enter
 	}
@@ -1604,55 +1632,218 @@ _mmcd(){
 		[ ! "$?" == "0" ] && _msg E "请先配置猛犸充电" && _enter && return 0
 		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from msg;")
 		[ ! $n -gt 1 ] &&  _msg E "请先配置猛犸充电" && _enter && return 0
+		
+		mkdir -p $HOME/.cache/td
+		tmp=$HOME/.cache/td/status.json
 		# download HMacMd5Utils.java
-		cd "$HOME/.config/td/"
-		if [ ! -e "HMacMd5Utils.java" ];then
+		cd $HOME/.config/td
+		if [ ! -e "$HOME/.config/td/HMacMd5Utils.java" ];then
 			_github_mirror_speed_up raw $HMacMd5Utils_RAW
 			_command "wget -c" "$url"
 		fi
-		# 
-		
-		# Login 获取cookie
+		# 请求头参数
 		phone=$(mysql -N -ummcd -p123456 -e "use mmcd; select phone from user;")
 		deviceId=$(mysql -N -ummcd -p123456 -e "use mmcd; select dev from user;")
 		appid=$(mysql -N -ummcd -p123456 -e "use mmcd; select appid from user;")
-		url="mobile.mamcharge.com/applet/api/applet/sendSMSCaptcha"
-		data="{\"nationalCode\":\"86\",\"phoneNum\":\"${phone}\",\"type\":\"1\"}"
-		javac HMacMd5Utils.java
-		s=$(java HMacMd5Utils $phone)
-		timestamp=$(echo $s | awk '{print $1}')
-		signature=$(echo $s | awk '{print $2}')
-		# Content-Length=57
-		H=()
+		url="mobile.mamcharge.com/applet/api/startCharger/deviceDetail"	
+		AppletUser=$(mysql -N -ummcd -p123456 -e "use mmcd; select AppletUser from user;")
+		Token="token: $AppletUser"
 		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from login;")
 		for x in $(seq 0 $(($n-1)))
 		do
 			H[$x]="$(mysql -N -ummcd -p123456 -e "use mmcd; select header from login limit $x,1;")"
 		done
-		_msg W "请求验证码"
-		curl -H "${H[0]}" -H "${H[1]}" -H "${H[2]}" -H "deviceId: $deviceId" -H "appId: $appid" -H "${H[3]}" -H "${H[4]}" -H "${H[5]}" -H "timestamp: $timestamp" -H "signature: $signature" -H "${H[6]}" -H "${H[7]}" -H "${H[8]}" -H "Content-Length: 57" -H "${H[10]}" -H "${H[11]}" -H "${H[12]}" -H "${H[13]}" -H "${H[14]}" -H "${H[15]}" -X POST -d "$data" $url > ./cookie
-		AuthCode=$(dialog --clear --title "请输入验证码" \
-		--inputbox "注意查收" 8 50 \
-		3>&1 1>&2 2>&3 3>&-)
-		AuthCode=$(echo $AuthCode | sed "s# ##g")
 		
+		mysql -ummcd -p123456 -e "use mmcd; select * from msg;"
+		echo -e "$(
+		cat<<-EOF
+		${YELLOW}输入说明${WHITE}
+		\t●查询单个充电桩：6
+		\t●查询多个充电桩：6 9 20 15
+		\t●查询多个且连续的充电桩：5-16
+		EOF
+		)"
+		echo -en "${YELLOW}输入要查询的充电桩(sno)：${GREEN}"
+		read op
+		if [ "$op" == "" ];then
+			echo -e "\n${RED}你没有输入数值！${WHITE}"
+			_enter
+			return 0
+		fi
+		# 充电桩的总数
+		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from msg;")
+		# 判断是否是1-9这类输入
+		if [[ "$(echo "$op" | grep "-" )" != "" ]];then
+			first=$(echo "$op" | grep "-" | awk -F "-" '{print $1}')
+			second=$(echo "$op" | grep "-" | awk -F "-" '{print $2}')
+			if [ -z "$first" ] || [ -z "$second" ] || [ $first -gt $second ];then
+				_msg E "你的输入有误！"
+				_enter
+				return 0
+			fi
+			op="$(seq $(echo "$op" | sed "s#-# #g"))"
+		fi
+		echo $op
+		#1 3 6 10 79
+		##判断序号是否超出范围
+		for x in $op
+		do
+			##判断输入是否合法，是为0
+			expr $x + 10 > /dev/null 2>&1
+			if [ "$?" -eq "2" ] || [  "$x" -lt "1" ] || [  "$x" -gt "$n" ];then
+				_msg E "你的输入有误！或超出范围！"
+				_enter
+				return 0
+			fi
+		done
+		
+		# 开始查询
+		echo -e "\n${BLUE}请耐心等待…${WHITE}"
+		for x in $op
+		do
+			# 请求头信息
+			x=$(($x-1))
+			coding=$(mysql -N -ummcd -p123456 -e "use mmcd; select coding from msg limit $x,1;")
+			name=$(mysql -N -ummcd -p123456 -e "use mmcd; select name from msg limit $x,1;")
+			data="{\"pno\":\"$coding\"}"
+			javac HMacMd5Utils.java
+			s=$(java HMacMd5Utils $coding 1 2)
+			timestamp=$(echo $s | awk '{print $1}')
+			signature=$(echo $s | awk '{print $2}')
+			# 请求
+			curl -s -H "$Token" -H "${H[0]}" -H "${H[1]}" -H "${H[2]}" -H "deviceId: $deviceId" -H "appId: $appid" -H "timestamp: $timestamp" -H "signature: $signature" -H "${H[3]}" -H "${H[4]}"  -H "Content-Length: 20" -H "${H[5]}" -H "${H[6]}" -H "${H[7]}" -H "${H[8]}" -H "${H[10]}" -H "${H[11]}" -X POST -d "$data" $url > $tmp
+			# 打印
+			echo -e "\t-------------${name}-------------"
+			echo -e "\t\t${GREEN}充电桩编码： ${coding}${WHITE}"
+			for y in $(seq 0 11)
+			do
+				if [ "$(jq -r .data.portList[$y].status $tmp)" == "0" ];then
+					echo -e "第$(($y+1))号插头：${RED}空闲${WHITE}"
+				else
+					echo -e "第$(($y+1))号插头：使用中"
+				fi
+			done
+		done
 		_enter
 	}
-	
+	##远程充电
+	_remote_power(){
+		clear
+		mysql -ummcd -p123456 -e "use mmcd; select count(*) from msg;" > /dev/null
+		[ ! "$?" == "0" ] && _msg E "请先配置猛犸充电" && _enter && return 0
+		n=$(mysql -N -ummcd -p123456 -e "use mmcd; select count(*) from msg;")
+		[ ! $n -gt 1 ] &&  _msg E "请先配置猛犸充电" && _enter && return 0
+		
+		mysql -ummcd -p123456 -e "use mmcd; select * from msg;"
+		echo -ne "\n\n${YELLOW}请输入充电桩的编码：${GREEN}"
+		read op
+		op=$(echo $op | sed "s# ##g")
+		status=1
+		for x in $(echo $(mysql -N -ummcd -p123456 -e "use mmcd; select coding from msg;"))
+		do
+			if [ "$op" == "$x" ];then
+				status=0
+				break
+			fi
+		done
+		if [ "$status" == "0" ];then
+			echo -e "\n${GREEN}默认跳转支付宝，如果没有安装，请使用微信 / QQ / 云闪付等等扫码${WHITE}"
+			am start -a android.intent.action.VIEW -d "alipays://platformapi/startapp?appId=20000067&url=www.chargerlink.com/alicp/$op"  >/dev/null 2>&1
+			qrencode -l M -t UTF8 -k "http://www.chargerlink.com/alicp/$op"
+		else
+			echo -e "${RED}此脚本没有收录有编码为：$op的充电桩！请检查再输入${WHITE}"
+		fi
+		_enter
+		return 0
+	}
 
 
+  	  OPTIONS=(
+	         1 "配置猛犸充电"
+	         2 "查询"
+	         3 "远程充电"
+	         4 "<<返回上级目录>>")
+	   _dialog "首页→其他选项→猛犸充电" "请选择" $OPTIONS
+	    case $op in
+	   		1)
+	   			_node _i
+	   			;;
+			2)
+				_node _check
+				;;
+			3)
+				_node _remote_power
+				;;
+			*)
+				return 0
+				;;
+		esac
+	}
+
+_sql(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}说明：${WHITE}即将安装的数据库有mysql，mariadb，sqlite
+			EOF
+		)"
+		# install SQL
+		if [ -n "$(dpkg -l | grep mysql)" ] || [ -n "$(dpkg -l | grep sqlite)" ];then
+			_msg W "本地已安装有数据库"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)
+				_stop
+				_command "apt purge" "mariadb sqlite" "-y"
+				;;
+			*)
+				return 0
+				;;
+			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_command "pkg update"
+		_command "pkg i -y" "mariadb sqlite"
+		sleep 2
+		##配置数据库
+		mysql_install_db --force
+		mysqladmin -u root password 123456
+		_msg W "MySQL初始密码为：123456"
+		_msg I "安装完成！"
+		_enter
+	}
+	_start(){
+		clear
+		[ -z "$(dpkg -l | grep mysql)"  ] && _msg E "请先安装数据库！" && _enter && return 0
+		_command "sv-enable mysqld"
+		_msg W "localhost:3306"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		clear
+		[ -z "$(dpkg -l | grep mysql)"  ] && _msg E "请先安装数据库！" && _enter && return 0
+		_command "sv-disable mysqld"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter	
+	}
     OPTIONS=(
-         1 "配置猛犸充电"
-         2 "查询"
-         3 "远程充电"
+         1 "安装｜卸载数据库mysql,mariadb,sqlite"
+         2 "启动服务"
+         3 "关闭服务"
          4 "<<返回上级目录>>")
-   _dialog "首页→其他选项→猛犸充电" "请选择" $OPTIONS
+   _dialog "首页→其他选项→数据库" "请选择" $OPTIONS
     case $op in
    		1)
    			_node _i
    			;;
 		2)
-			_node _check
+			_node _start
 			;;
 		3)
 			_node _stop
@@ -1662,6 +1853,7 @@ _mmcd(){
 			;;
 	esac
 }
+
 
 # main
 _otherOP(){
@@ -1677,9 +1869,10 @@ _otherOP(){
          9 "wordpress"
          10 "phpMyAdmin"
          11 "TreeSoft"
-         12 "MySQL"
-         13 "<<返回上级目录>>"
-         14 "退出脚本")
+         12 "数据库"
+         13 "speed网络测速"
+         14 "<<返回上级目录>>"
+         15 "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
     case $op in
     	1)
@@ -1715,10 +1908,13 @@ _otherOP(){
     	11)
     		_node _TreeSoft
     		;;    	
-		12)
-    		_node _mysql
-    		;;
+    	12)
+    		_node _sql
+    		;;    	
     	13)
+    		_node _speed
+    		;;    	
+    	14)
     		return 0
     		;;
     	*)

@@ -102,18 +102,18 @@ _node(){
 				${stack[$((${#stack[@]}-1))]}
 				case $? in
 				0)
-					echo "取消前${stack[*]}"
+					#echo "取消前${stack[*]}"
 					unset stack[$((${#stack[@]}-1))]
-					echo "取消后${stack[*]}"
-					_enter
+					#echo "取消后${stack[*]}"
+					#_enter
 					break
 					;;
 				255)
-					echo "取消前${stack[*]}"
+					#echo "取消前${stack[*]}"
 					unset stack[$((${#stack[@]}-1))]
 					unset stack[$((${#stack[@]}-2))]
-					echo "取消后${stack[*]}"
-					_enter
+					#echo "取消后${stack[*]}"
+					#_enter
 					break					
 					;;
 				esac
@@ -153,7 +153,7 @@ _command(){
 		echo -e "\n${BLUE}[*]$white${GREEN}$1${WHITE}"
 		command $1
 		;;
-	2 | 3)
+	*)
 		n=0
 		for x in $2
 		do
@@ -194,36 +194,31 @@ _dialog(){
 # main
 _main(){
 	OPTIONS=(
-         1 "配置语言环境"
-         2 "终端美化"
-         3 "更换源sources.list"
-         4 "更新脚本"
-         5 "其他选项"
-         6 "退出脚本")
+         1 "终端美化"
+         2 "更换源sources.list"
+         3 "更新脚本"
+         4 "其他选项"
+         5 "退出脚本")
     
     _dialog "首页" "使用↑↓选择，也可以用手点击选项再回车哦" $OPTIONS
     case $op in 
     	1)
-			_node  _language
-			
-			;;
-    	2)
 			_node  _style
 
 			;;
-    	3)
+    	2)
 			_node  _sources
 
 			;;
-    	4)
+    	3)
 			_node  _update
 
 			;;
-    	5)
+    	4)
 			_node _otherOP
 
 			;;
-    	6)
+    	5)
     	    clear
     	    return 0
 			;;
