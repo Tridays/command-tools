@@ -236,6 +236,7 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 		_enter
 	fi
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
+	[ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
 	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
 	mkdir -p $HOME/.cache/td
 	_github_mirror_speed_up raw $VERSION_RAW
