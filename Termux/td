@@ -23,6 +23,7 @@ THREEDAYS_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Term
 TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/td"
 CONFIG="$HOME/.config/td/ThreeDays"
 VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
+TERMUX-X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
 # github speed up
 CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
@@ -237,6 +238,14 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	fi
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
 	[ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
+	
+	if [ -z "$(dpkg -l | grep termux-x11)" ];then
+		_command "pkg i -y" "x11-repo"
+		_command "pkg i -y" "xwayland"
+		_github_mirror_speed_up raw $TERMUX-X11_RAW
+		_command "wget -c" "$url"
+		_command "apt install " "./termux-x11.deb"
+	fi
 	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
 	mkdir -p $HOME/.cache/td
 	_github_mirror_speed_up raw $VERSION_RAW
