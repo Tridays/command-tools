@@ -169,5 +169,5 @@ done
 # git for ssh
 # install ssh
 # ssh-keygen -t rsa -b 4096 
-# Enter passphrase ... < password
+# Enter passphrase ... < password  （<  enter or not password ）
 # cat $HOME/.ssh/id_rsa.pub

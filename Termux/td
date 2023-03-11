@@ -230,7 +230,9 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	_github_mirror_speed_up raw $THREEDAYS_RAW
 	_command "wget -c" "$url" "-O $CONFIG"
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+	[ -z "$(dpkg -l | grep termux-api)" ] && _command "pkg i -y" "termux-api"
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
+	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage"
 	mkdir -p $HOME/.cache/td
 	_github_mirror_speed_up raw $VERSION_RAW
 	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
