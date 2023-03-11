@@ -946,7 +946,9 @@ _update(){
 	_github_mirror_speed_up raw $TERMUX_AARCH64_TD_RAW
 	_command "wget -c" "$url" "-O $PREFIX/bin/td"
 	chmod 775 $PREFIX/bin/td $CONFIG
-	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"	
+	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
+	echo "$(date +%s)" > $HOME/.cache/td/timestamp
+	_enter
 	exit
 }
 

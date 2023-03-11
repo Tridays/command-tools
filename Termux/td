@@ -22,7 +22,7 @@ fi
 THREEDAYS_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/ThreeDays"
 TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/td"
 CONFIG="$HOME/.config/td/ThreeDays"
-
+VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
 # github speed up
 CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
@@ -190,7 +190,15 @@ _dialog(){
 	 	
 	export op=`cat $HOME/menu`
 }
+_auto_update(){
+	n=$(cat $HOME/.cache/td/timestamp)
+	timestamp=$(date +%s)
+	if [ $(($n+86400)) -gt $timestamp ];then
+		termux-dialog confirm -i "td脚本有可以更新哦～"
+	fi
+	echo $(($timestamp+86400))
 
+}
 # main
 _main(){
 	OPTIONS=(
@@ -233,6 +241,8 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	_command "wget -c" "$url" "-O $CONFIG"
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
+	mkdir -p $HOME/.cache/td
+	echo "$(date +%s)" > $HOME/.cache/td/timestamp
 fi
 source $CONFIG
 _node _main
