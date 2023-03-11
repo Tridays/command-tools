@@ -232,7 +232,7 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 	if [ -z "$(dpkg -l | grep termux-api)" ];then
 		_command "pkg i -y" "termux-api"
-		_msg W "打开手机设置→应用权限→Termux系列，给存储权限+通知权限"
+		_msg W "打开手机设置→应用权限→Termux系列，给存储权限+通知权限+自启动"
 		_enter
 	fi
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"

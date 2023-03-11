@@ -948,7 +948,8 @@ _update(){
 	_command "wget -c" "$url" "-O $PREFIX/bin/td"
 	chmod 775 $PREFIX/bin/td $CONFIG
 	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
-	echo "$(date +%s)" > $HOME/.cache/td/timestamp
+	_github_mirror_speed_up raw $VERSION_RAW
+	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
 	_enter
 	exit
 }
