@@ -28,7 +28,6 @@ CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
 RAW_SPEED_UP_LINK=("raw.gitfast.tk") # "raw.fastgit.org" https://ghproxy.com/
 
-
 #  Github国内镜像网站
 _github_mirror_speed_up(){
 	# args：$1 $2
@@ -190,15 +189,6 @@ _dialog(){
 	 	
 	export op=`cat $HOME/menu`
 }
-_auto_update(){
-	n=$(cat $HOME/.cache/td/timestamp)
-	timestamp=$(date +%s)
-	if [ $(($n+86400)) -gt $timestamp ];then
-		termux-dialog confirm -i "td脚本有可以更新哦～"
-	fi
-	echo $(($timestamp+86400))
-
-}
 # main
 _main(){
 	OPTIONS=(
@@ -242,7 +232,26 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
 	mkdir -p $HOME/.cache/td
-	echo "$(date +%s)" > $HOME/.cache/td/timestamp
+	_github_mirror_speed_up raw $VERSION_RAW
+	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
 fi
 source $CONFIG
+# auto update
+{
+	_github_mirror_speed_up raw $VERSION_RAW
+	# 获取版本信息
+	for x in $(seq 0 5)
+	do
+		curl -s $url > $HOME/.cache/td/v 2>&1 && status=0 && break
+	done
+	if [ $status ];then
+		new_version=($(cat $HOME/.cache/td/v | sed "s#.# #g"))
+		old_version=($(cat $HOME/.cache/td/version | sed "s#.# #g"))
+		for x in $(seq 0 2)
+		do
+			[ ${new_version[$x]} -gt ${old_version[$x]} ] && termux-toast -c red -s "td脚本有更新"
+		done
+	fi
+}&
+
 _node _main
