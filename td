@@ -142,15 +142,15 @@ do
 		break
 		;;
 	2)
-		
+		echo -e "${YELLOW}The function is temporarily open${WHITE}"
 		break
 		;;
 	3)
-		
+		echo -e "${YELLOW}The function is temporarily open${WHITE}"
 		break
 		;;
 	4)
-		
+		echo -e "${YELLOW}The function is temporarily open${WHITE}"
 		break
 		;;
 	5)
