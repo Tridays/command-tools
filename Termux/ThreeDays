@@ -15,6 +15,7 @@ WIKIJS_RELEASE="https://github.com/requarks/wiki/releases/download/v2.5.297/wiki
 WORDPRESS="https://cn.wordpress.org/wordpress-6.1.1-zh_CN.zip"
 TOMCAT_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/tomcat/tomcat.zip"
 FISH_RAW="https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install"
+SPEEDTEST_RAW="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py"
 #--------------------------------------------- 1级菜单目录 ---------------------------------------------
 # 终端美化
 _fish(){
@@ -1118,7 +1119,7 @@ _wordpress(){
 			\t\t●nginx
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/wordpress" && _stop && rm -rf $PREFIX/etc/nginx/config/wordpress.conf || return 0
+		_checkInstall "$PREFIX/opt/wordpress" && _command "pkill nginx; pkill  php-fpm" && rm -rf $PREFIX/etc/nginx/config/wordpress.conf || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1241,7 +1242,7 @@ _phpMyAdmin(){
 			\t\t●nginx
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/phpMyAdmin" && _stop && rm -rf $PREFIX/etc/nginx/config/phpMyAdmin.conf || return 0
+		_checkInstall "$PREFIX/opt/phpMyAdmin" && _command "pkill nginx; pkill  php-fpm" && rm -rf $PREFIX/etc/nginx/config/phpMyAdmin.conf || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1339,7 +1340,7 @@ _TreeSoft(){
 			EOF
 		)"
 		# install TreeSoft
-		_checkInstall "$PREFIX/opt/tomcat" && _stop && rm -rf "$PREFIX/var/service/tomcat" || return 0
+		_checkInstall "$PREFIX/opt/tomcat" && _command "pkill java" && rm -rf "$PREFIX/var/service/tomcat" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1797,7 +1798,7 @@ _sql(){
 			read op
 			case $op in
 			y|Y)
-				_stop
+				_command "pkill mysqld"
 				_command "apt purge" "mariadb sqlite" "-y"
 				;;
 			*)
@@ -1813,8 +1814,8 @@ _sql(){
 		_command "pkg i -y" "mariadb sqlite"
 		sleep 2
 		##配置数据库
-		mysql_install_db --force
-		mysqladmin -u root password 123456
+		_command "mysql_install_db --force"
+		_msg "可以使用这条命令初始化MySQL数据库的密码\nmysqladmin -u root password 123456"
 		_msg W "MySQL初始密码为：123456"
 		_msg I "安装完成！"
 		_enter
@@ -1857,6 +1858,66 @@ _sql(){
 }
 
 
+_speed(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}一款简单的网速测试
+			${GREEN}官网：${WHITE}https://github.com/sivel/speedtest-cli
+			EOF
+		)"
+		# install SpeedTest
+		runfile=$PREFIX/bin/speedtest-cli
+		[ -z "$(command -v python)" ] && _command "pkg i -y" "python"
+		if [ -e "$runfile" ];then
+			_msg W "本地已安装SpeedTest"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)				
+				rm -rf "$runfile"
+				;;
+			*)
+				return 0
+				;;
+			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_github_mirror_speed_up raw $SPEEDTEST_RAW
+		_command "wget -O $runfile" "$url"
+		chmod +x $runfile
+		_msg I "安装完成！"
+		_enter
+	}
+	_run(){
+		clear
+		runfile=$PREFIX/bin/speedtest-cli
+		 [ ! -e "$runfile" ] && _msg E "请先安装SpeedTest" && _enter && return 0
+		 $runfile --bytes
+		 _enter
+	}
+    OPTIONS=(
+         1 "安装｜卸载SpeedTest"
+         2 "测网速"
+         3 "<<返回上级目录>>")
+   _dialog "首页→其他选项→SpeedTest" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _run
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
+
 # main
 _otherOP(){
     OPTIONS=(
@@ -1872,7 +1933,7 @@ _otherOP(){
          10 "phpMyAdmin"
          11 "TreeSoft"
          12 "数据库"
-         13 "speed网络测速"
+         13 "SpeedTest网络测速"
          14 "<<返回上级目录>>"
          15 "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
