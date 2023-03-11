@@ -131,7 +131,7 @@ do
 		#deb https://packages.termux.dev/apt/termux-main/ stable main
 		deb https://mirrors.bfsu.edu.cn/termux/apt/termux-main stable main
 		EOF
-		_command "pkg update"
+		_command "pkg update -y"
 		_command "pkg i -y" "wget"
 		rm -rf $PREFIX/bin/td
 		_github_mirror_speed_up raw $TERMUX_AARCH64_TD
@@ -166,12 +166,8 @@ done
 
 
 
-
-
-
-
-
-
-
-
-
+# git for ssh
+# install ssh
+# ssh-keygen -t rsa -b 4096 
+# Enter passphrase ... < password
+# cat $HOME/.ssh/id_rsa.pub
