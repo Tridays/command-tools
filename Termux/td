@@ -230,9 +230,13 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	_github_mirror_speed_up raw $THREEDAYS_RAW
 	_command "wget -c" "$url" "-O $CONFIG"
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
-	[ -z "$(dpkg -l | grep termux-api)" ] && _command "pkg i -y" "termux-api"
+	if [ -z "$(dpkg -l | grep termux-api)" ];then
+		_command "pkg i -y" "termux-api"
+		_msg W "打开手机设置→应用权限→Termux系列，给存储权限+通知权限"
+		_enter
+	fi
 	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
-	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage"
+	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
 	mkdir -p $HOME/.cache/td
 	_github_mirror_speed_up raw $VERSION_RAW
 	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
