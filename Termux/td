@@ -25,7 +25,7 @@ TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/m
 ThreeDays="$HOME/.config/td/ThreeDays"
 GUI="$HOME/.config/td/GUI"
 VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
-TERMUX-X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
+TERMUX_X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
 
 # github speed up
 CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
@@ -299,7 +299,7 @@ fi
 if [ -z "$(dpkg -l | grep termux-x11)" ];then
 	_command "pkg i -y" "x11-repo"
 	_command "pkg i -y" "xwayland"
-	_github_mirror_speed_up raw $TERMUX-X11_RAW
+	_github_mirror_speed_up raw $TERMUX_X11_RAW
 	_command "wget -c" "$url"
 	_command "apt install " "./termux-x11.deb"
 fi
