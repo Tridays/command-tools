@@ -169,10 +169,12 @@ _GUI(){
 			_node  _termux_destop
 			;;
     	2)
-			_node  _kitty
+			_msg W "待开发"
+			_enter
 			;;
     	3)
-			_node  _neovim_gui
+			_msg W "待开发"
+			_enter
 			;;
     	4)
 			return 0
