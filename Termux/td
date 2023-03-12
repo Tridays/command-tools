@@ -334,6 +334,7 @@ source $GUI
 	if [ "$status" == "0" ];then
 		new_version=($(cat $HOME/.cache/td/v | sed "s#.# #g"))
 		old_version=($(cat $HOME/.config/td/version | sed "s#.# #g"))
+		echo "${new_version[*]}和${old_version[*]}"
 		for x in $(seq 0 2)
 		do
 			echo "测试：${new_version[$x]}与${old_version[$x]}"
