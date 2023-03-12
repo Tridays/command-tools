@@ -177,7 +177,12 @@ _GUI(){
 			_enter
 			;;
     	4)
-			return 0
+			_msg W "待开发"
+			_enter
+			;;
+    	5)
+			_msg W "待开发"
+			_enter
 			;;
     	*)
 			exit
