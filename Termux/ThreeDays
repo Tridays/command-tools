@@ -54,8 +54,8 @@ _fish(){
 		clear
 		[ -z "$(dpkg -l | grep fish)"  ] && _msg E "请先安装fish！" && _enter && return 0
 		OPTIONS=(
-             1 "开启"
-             2 "关闭")
+             "开启"
+             "关闭")
 		_dialog "首页→终端美化→fish→开关" "请选择" $OPTIONS
 		case $op in
 			1)
@@ -118,8 +118,8 @@ _fish(){
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
 		v=${thing[$op]}
 		OPTIONS=(
-			1 "启用${thing[$op]}"
-			2 "移除${thing[$op]}")
+			"启用${thing[$op]}"
+			"移除${thing[$op]}")
 		_dialog "首页→终端美化→fish→主题→启用/移除" "请选择" $OPTIONS
 		case $op in
 			1)
@@ -137,10 +137,10 @@ _fish(){
 		esac
 	}
 	OPTIONS=(
-         1 "安装｜卸载fish"
-         2 "启用｜关闭"
-         3 "主题"
-         4 "<<返回上级目录>>")
+         "安装｜卸载fish"
+         "启用｜关闭"
+         "主题"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→fish" "请选择" $OPTIONS
     case $op in
    		1)
@@ -162,11 +162,11 @@ _fish(){
 
 _style(){
     OPTIONS=(
-         1 "背景颜色"
-         2 "字体"
-         3 "zsh"
-         4 "fish"
-         5 "<<返回上级目录>>")
+         "背景颜色"
+         "字体"
+         "zsh"
+         "fish"
+         "<<返回上级目录>>")
     _dialog "首页→终端美化" "请选择" $OPTIONS
 	case $op in
 		1)
@@ -187,12 +187,12 @@ _style(){
 # 换源
 _sources(){
 		OPTIONS=(
-			1 "官方源（国外）"
-			2 "清华源（国内）"    
-			3 "北京外国语源（国内）"    
-			4 "阿里源（国内）"
-			5 "中科大源（国内）"
-			6 "<<返回上级目录>>")
+			"官方源（国外）"
+			"清华源（国内）"    
+			"北京外国语源（国内）"    
+			"阿里源（国内）"
+			"中科大源（国内）"
+			"<<返回上级目录>>")
 
     _dialog "首页→更换源sources.list" "请选择" $OPTIONS
 
@@ -307,10 +307,10 @@ _filebrowser(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装｜卸载filebrowser"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载filebrowser"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→filebrowser" "请选择" $OPTIONS
     case $op in
    		1)
@@ -360,10 +360,10 @@ _UnblockNeteaseMusic(){
 		_enter
 	}
 	    OPTIONS=(
- 	        1 "安装｜卸载UnblockNeteaseMusic"
-	        2 "开启"
-	        3 "关闭"
-	        4 "<<返回上级目录>>")
+ 	        "安装｜卸载UnblockNeteaseMusic"
+	        "开启"
+	        "关闭"
+	        "<<返回上级目录>>")
 	    _dialog "首页→其他选项→UnblockNeteaseMusic解锁网易云" "请选择" $OPTIONS
 	    case $op in
 	    	1)
@@ -402,9 +402,9 @@ _music-dl(){
 		_enter
 	}
 	    OPTIONS=(
- 	        1 "安装｜卸载Music-dl"
-	        2 "下载音乐"
-	        3 "<<返回上级目录>>")
+ 	        "安装｜卸载Music-dl"
+	        "下载音乐"
+	        "<<返回上级目录>>")
 	    _dialog "首页→其他选项→全网音乐下载music-dl" "请选择" $OPTIONS
 	    case $op in
 	    	1)
@@ -521,11 +521,11 @@ _vscode-server(){
 	}
 
     OPTIONS=(
-         1 "安装｜卸载VScode-server"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "修改配置文件"
-         5 "<<返回上级目录>>")
+         "安装｜卸载VScode-server"
+         "启动服务"
+         "关闭服务"
+         "修改配置文件"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→VScode-server" "请选择" $OPTIONS
     case $op in
    		1)
@@ -616,10 +616,10 @@ _Alist(){
 		_enter
 	}
 	OPTIONS=(
-         1 "安装｜卸载Alist"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载Alist"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→Alist" "请选择" $OPTIONS
     case $op in
    		1)
@@ -695,9 +695,9 @@ _vimIDE(){
 	}
 	main(){
 	    OPTIONS=(
-	         1 "vim-plug+coc代码补全"
-	         2 "vim-plug+ycm代码补全"
-	         3 "<<返回上级目录>>")
+	         "vim-plug+coc代码补全"
+	         "vim-plug+ycm代码补全"
+	         "<<返回上级目录>>")
  	   _dialog "首页→其他选项→Vim IDE" "请选择" $OPTIONS
 	    case $op in
     		1)
@@ -831,8 +831,8 @@ _nvimIDE(){
 		_msg W "全屏模式会屏蔽手机状态栏，并且在某些设备上有bug，不一定会成功"
 		_enter
 	    OPTIONS=(
-         1 "需要沉浸模式"
-         2 "不需要")
+         "需要沉浸模式"
+         "不需要")
 		_dialog "请问是否需要使用全屏模式？" "请问是否需要使用全屏模式？\n请选择" $OPTIONS
 		case $op in
 			1)
@@ -895,8 +895,8 @@ _nvimIDE(){
 		_enter
 		
 	    OPTIONS=(
-         1 "需要沉浸模式"
-         2 "不需要")
+         "需要沉浸模式"
+         "不需要")
 		_dialog "请问是否需要使用全屏模式？" "请选择" $OPTIONS
 		case $op in
 			1)
@@ -914,10 +914,10 @@ _nvimIDE(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装nvim IDE"
-         2 "卸载nvim IDE"
-         3 "更新nvim IDE配置文件"
-         4 "<<返回上级目录>>")
+         "安装nvim IDE"
+         "卸载nvim IDE"
+         "更新nvim IDE配置文件"
+         "<<返回上级目录>>")
    _dialog "nim IDE v0.5" "请选择" $OPTIONS
     case $op in
    		1)
@@ -995,9 +995,9 @@ _wikijs(){
 		rm -rf nodejs-16.tar
 	    # 选择数据库
 	    OPTIONS=(
-			1 "MySQL｜localhost:3306"
-			2 "MariaDB｜localhost:3306"
-			3 "sqlite｜localhost:3306")
+			"MySQL｜localhost:3306"
+			"MariaDB｜localhost:3306"
+			"sqlite｜localhost:3306")
 		_dialog "数据库选择" "请选择数据库信息" $OPTIONS
 		
 		# 暂且固定为MySQL
@@ -1059,9 +1059,9 @@ _wikijs(){
 		fi
 	    # 选择数据库
 	    OPTIONS=(
-			1 "MySQL｜localhost:3306"
-			2 "MariaDB｜localhost:3306"
-			3 "sqlite｜localhost:3306")
+			"MySQL｜localhost:3306"
+			"MariaDB｜localhost:3306"
+			"sqlite｜localhost:3306")
 		_dialog "数据库选择" "请选择数据库信息" $OPTIONS
 		case "$op" in
 		1)
@@ -1086,10 +1086,10 @@ _wikijs(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装｜卸载Wiki js"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载Wiki js"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→Wiki.js" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1209,10 +1209,10 @@ _wordpress(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装｜卸载wordpress"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载wordpress"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→wordpress" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1308,10 +1308,10 @@ _phpMyAdmin(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装｜卸载phpMyAdmin"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载phpMyAdmin"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→phpMyAdmin" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1397,10 +1397,10 @@ _TreeSoft(){
 		_enter
 	}
     OPTIONS=(
-         1 "安装｜卸载TreeSoft"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载TreeSoft"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→TreeSoft" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1764,10 +1764,10 @@ _mmcd(){
 
 
   	  OPTIONS=(
-	         1 "配置猛犸充电"
-	         2 "查询"
-	         3 "远程充电"
-	         4 "<<返回上级目录>>")
+	         "配置猛犸充电"
+	         "查询"
+	         "远程充电"
+	         "<<返回上级目录>>")
 	   _dialog "首页→其他选项→猛犸充电" "请选择" $OPTIONS
 	    case $op in
 	   		1)
@@ -1838,10 +1838,10 @@ _sql(){
 		_enter	
 	}
     OPTIONS=(
-         1 "安装｜卸载数据库mysql,mariadb,sqlite"
-         2 "启动服务"
-         3 "关闭服务"
-         4 "<<返回上级目录>>")
+         "安装｜卸载数据库mysql,mariadb,sqlite"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→数据库" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1903,9 +1903,9 @@ _speed(){
 		 _enter
 	}
     OPTIONS=(
-         1 "安装｜卸载SpeedTest"
-         2 "测网速"
-         3 "<<返回上级目录>>")
+         "安装｜卸载SpeedTest"
+         "测网速"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→SpeedTest" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1931,9 +1931,9 @@ _gui(){
 	
 	}
     OPTIONS=(
-         1 "Kitty终端"
-         2 "待定"
-         3 "<<返回上级目录>>")
+         "Kitty终端"
+         "待定"
+         "<<返回上级目录>>")
    _dialog "首页→其他选项→GUI" "请选择" $OPTIONS
     case $op in
    		1)
@@ -1951,28 +1951,24 @@ _gui(){
 # main
 _otherOP(){
     OPTIONS=(
-         1 "GUI"
-         2 "VScode-server"
-         3 "Alist"
-         4 "nvim IDE"
-         5 "filebrowser文件管理器"
-         6 "猛犸充电"
-         7 "解锁网易云灰色歌曲"
-         8 "音乐下载器music-dl"
-         9 "Wiki.js"
-         10 "wordpress"
-         11 "phpMyAdmin"
-         12 "TreeSoft"
-         13 "数据库"
-         14 "SpeedTest网络测速"
-         15 "<<返回上级目录>>"
-         16 "退出脚本")
+         "VScode-server"
+         "Alist"
+         "nvim IDE"
+         "filebrowser文件管理器"
+         "猛犸充电"
+         "解锁网易云灰色歌曲"
+         "音乐下载器music-dl"
+         "Wiki.js"
+         "wordpress"
+         "phpMyAdmin"
+         "TreeSoft"
+         "数据库"
+         "SpeedTest网络测速"
+         "<<返回上级目录>>"
+         "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
     case $op in
     	1)
-    		_node _gui
-    		;;    
-    	2)
     		_node _vscode-server
     		;;
     	3)

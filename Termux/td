@@ -179,7 +179,17 @@ _command(){
 # dialog
 _dialog(){
 	export PORT=1
-	
+	n=0
+	count=1
+	for x in ${OPTIONS[*]}
+	do		
+		OPTIONS[$n]=$count
+		let n++
+		OPTIONS[$n]=$x
+		let n++
+		let count++
+	done
+
 	dialog --clear \
 		--backtitle "$1" \
 		--title "@参(•̀⌄•́)芜湖起飞" \
@@ -193,31 +203,31 @@ _dialog(){
 # main
 _main(){
 	OPTIONS=(
-         1 "终端美化"
-         2 "更换源sources.list"
-         3 "更新脚本"
-         4 "其他选项"
-         5 "退出脚本")
+         "终端美化"
+         "更换源sources.list"
+         "更新脚本"
+         "GUI"
+         "其他选项"
+         "退出脚本")
     
     _dialog "首页" "使用↑↓选择，也可以用手点击选项再回车哦" $OPTIONS
     case $op in 
     	1)
 			_node  _style
-
 			;;
     	2)
 			_node  _sources
-
 			;;
     	3)
 			_node  _update
-
 			;;
     	4)
-			_node _otherOP
-
+			_node _GUI
 			;;
     	5)
+			_node _otherOP
+			;;
+    	*)
     	    clear
     	    return 0
 			;;
