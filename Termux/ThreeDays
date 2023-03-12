@@ -936,25 +936,6 @@ _nvimIDE(){
 }
 
 
-# 更新脚本
-_update(){
-	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
-	rm -rf $PREFIX/bin/td $ThreeDays
-	# fun文件
-	_github_mirror_speed_up raw $THREEDAYS_RAW
-	_command "wget -c" "$url" "-O $ThreeDays"
-	# main脚本
-	_github_mirror_speed_up raw $TERMUX_AARCH64_TD_RAW
-	_command "wget -c" "$url" "-O $PREFIX/bin/td"
-	chmod 775 $PREFIX/bin/td $ThreeDays
-	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
-	rm -rf $HOME/.cache/td/version
-	_github_mirror_speed_up raw $VERSION_RAW
-	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
-	_enter
-	exit
-}
-
 _wikijs(){
 	_i(){
 		clear

@@ -25,11 +25,12 @@ TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/m
 ThreeDays="$HOME/.config/td/ThreeDays"
 GUI="$HOME/.config/td/GUI"
 VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
-TERMUX_X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
+TERMUX-X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
+
 # github speed up
 CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
-RAW_SPEED_UP_LINK=("raw.gitfast.tk") # "raw.fastgit.org" https://ghproxy.com/
+RAW_SPEED_UP_LINK=("raw.gitfast.tk" "raw.fastgit.org") # "raw.fastgit.org" https://ghproxy.com/
 
 #  Github国内镜像网站
 _github_mirror_speed_up(){
@@ -149,6 +150,16 @@ _checkInstall(){
 
 # exec command
 _command(){
+	if [ "$1" == "-clone" ];then
+		status=1
+		shift 1
+	elif [ "$1" == "-release" ];then
+		status=2
+		shift 1
+	elif [ "$1" == "-raw" ];then
+		status=3
+		shift 1
+	fi
 	# args：$1 $2 $3
 	case $# in
 	1)
@@ -161,8 +172,19 @@ _command(){
 		do
 			while :
 			do
-				echo -e "\n${BLUE}[*]$white${GREEN}$1 $x $3 ${RED}(无情计数器：$n )${WHITE}"
-				command="$1 $x $3"
+				y=$x
+				if [ "$status" == "1" ];then
+					_github_mirror_speed_up clone $x
+					y=$url
+				elif [ "$status" == "2" ];then
+					_github_mirror_speed_up release $x
+					y=$url				
+				elif [ "$status" == "3" ];then
+					_github_mirror_speed_up raw $x
+					y=$url
+				fi
+				echo -e "\n${BLUE}[*]$white${GREEN}$1 $y $3 ${RED}(无情计数器：$n )${WHITE}"
+				command="$1 $y $3"
 				command $command
 				if [ "$?" == "0" ];then
 					let n++
@@ -175,7 +197,6 @@ _command(){
 		done		
 		;;
 	esac
-	
 }
 
 # dialog
@@ -202,6 +223,35 @@ _dialog(){
 	 	
 	export op=`cat $HOME/menu`
 }
+
+# 更新脚本
+_update(){
+	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
+	rm -rf $HOME/.cache/download
+	mkdir -p $HOME/.cache/download
+	#rm -rf $PREFIX/bin/td $ThreeDays
+	cd $HOME/.cache/download
+	# fun文件
+	_command "-raw" "wget -c" "$THREEDAYS_RAW"
+	# GUI
+	_command "-raw" "wget -c" "$GUI_RAW"
+	# main脚本
+	_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
+	# version
+	_command "-raw" "wget -c" "$VERSION_RAW"
+	# mv
+	mv ThreeDays $HOME/.config/td/ThreeDays
+	mv GUI $HOME/.config/td/GUI
+	mv version $HOME/.config/td/version
+	mv td $PREFIX/bin/td
+	rm -rf $HOME/.cache/download
+	chmod 775 $PREFIX/bin/td
+	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
+	_enter
+	exit
+}
+
+
 # main
 _main(){
 	OPTIONS=(
@@ -237,36 +287,39 @@ _main(){
 }
 
 
-# shell begin
-if [ ! -e "$ThreeDays" ] || [ "$(cat $ThreeDays | wc -l)" == "0" ] || [ ! -e "$GUI" ] || [ "$(cat $GUI | wc -l)" == "0" ];then
-	mkdir -p $HOME/.config/td
-	_github_mirror_speed_up raw $THREEDAYS_RAW
-	_command "wget -c" "$url" "-O $ThreeDays"
-
-	_github_mirror_speed_up raw $GUI_RAW
-	_command "wget -c" "$url" "-O $GUI"
-	
-	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
-	if [ -z "$(dpkg -l | grep termux-api)" ];then
-		_command "pkg i -y" "termux-api"
-		_msg W "打开手机设置→应用权限→Termux系列，给存储权限+通知权限+自启动"
-		_enter
-	fi
-	[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
-	[ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
-	
-	if [ -z "$(dpkg -l | grep termux-x11)" ];then
-		_command "pkg i -y" "x11-repo"
-		_command "pkg i -y" "xwayland"
-		_github_mirror_speed_up raw $TERMUX_X11_RAW
-		_command "wget -c" "$url"
-		_command "apt install " "./termux-x11.deb"
-	fi
-	[ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
-	mkdir -p $HOME/.cache/td
-	_github_mirror_speed_up raw $VERSION_RAW
-	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
+# 环境准备
+[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+[ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
+[ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
+if [ -z "$(dpkg -l | grep termux-api)" ];then
+	_command "pkg i -y" "termux-api"
+	_msg W "打开手机设置→应用权限→Termux系列，给存储权限+通知权限+自启动"
+	_enter
 fi
+if [ -z "$(dpkg -l | grep termux-x11)" ];then
+	_command "pkg i -y" "x11-repo"
+	_command "pkg i -y" "xwayland"
+	_github_mirror_speed_up raw $TERMUX-X11_RAW
+	_command "wget -c" "$url"
+	_command "apt install " "./termux-x11.deb"
+fi
+[ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
+
+
+if [ ! -e "$ThreeDays" ] || [ "$(cat $ThreeDays | wc -l)" == "0" ];then
+	_update
+fi
+if [ ! -e "$GUI" ] || [ "$(cat $GUI | wc -l)" == "0" ];then
+	_update
+fi
+
+for x in $ThreeDays $GUI 
+do
+	[ ! -e "$x" ] || [ "$(cat $x | wc -l)" == "0" ] && _update
+done
+
+
+
 source $ThreeDays
 source $GUI
 # auto update
@@ -277,9 +330,9 @@ source $GUI
 	do
 		curl -s $url > $HOME/.cache/td/v 2>&1 && status=0 && break
 	done
-	if [ $status ];then
+	if [ "$status" == "0" ];then
 		new_version=($(cat $HOME/.cache/td/v | sed "s#.# #g"))
-		old_version=($(cat $HOME/.cache/td/version | sed "s#.# #g"))
+		old_version=($(cat $HOME/.config/td/version | sed "s#.# #g"))
 		for x in $(seq 0 2)
 		do
 			[ ${new_version[$x]} -gt ${old_version[$x]} ] && termux-toast -c red -s "td脚本有更新"
