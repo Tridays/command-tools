@@ -341,7 +341,7 @@ _UnblockNeteaseMusic(){
 		_enter
 	}
 	start(){
-		[ ! -e "$HOME/github/UnblockNeteaseMusic" ]&&echo -e "${YELLOW}请先安装music-dl！${WHITE}"&&_enter&&return
+		[ ! -e "$HOME/github/UnblockNeteaseMusic" ]&&echo -e "${YELLOW}请先安装UnblockNeteaseMusic！${WHITE}"&&_enter&&return
 		_command "pkill node"
 		sleep 1
 		_command "node $HOME/github/UnblockNeteaseMusic/app.js -p 8008 -a 127.0.0.1 "
@@ -1920,66 +1920,98 @@ _speed(){
 	esac
 }
 
+
+_gui(){
+	_kitty(){
+	
+	export XDG_RUNTIME_DIR=${TMPDIR}
+	pkg install imagemagick
+	termux-x11 :1 -dpi 300 &
+	env DISPLAY=:1 kitty --config remember_window_size  yes initial_window_width  640 initial_window_height 400
+	
+	}
+    OPTIONS=(
+         1 "Kitty终端"
+         2 "待定"
+         3 "<<返回上级目录>>")
+   _dialog "首页→其他选项→GUI" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _kitty
+   			;;
+		2)
+			echo
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
+
 # main
 _otherOP(){
     OPTIONS=(
-         1 "VScode-server"
-         2 "Alist"
-         3 "nvim IDE"
-         4 "filebrowser文件管理器"
-         5 "猛犸充电"
-         6 "解锁网易云灰色歌曲"
-         7 "音乐下载器music-dl"
-         8 "Wiki.js"
-         9 "wordpress"
-         10 "phpMyAdmin"
-         11 "TreeSoft"
-         12 "数据库"
-         13 "SpeedTest网络测速"
-         14 "<<返回上级目录>>"
-         15 "退出脚本")
+         1 "GUI"
+         2 "VScode-server"
+         3 "Alist"
+         4 "nvim IDE"
+         5 "filebrowser文件管理器"
+         6 "猛犸充电"
+         7 "解锁网易云灰色歌曲"
+         8 "音乐下载器music-dl"
+         9 "Wiki.js"
+         10 "wordpress"
+         11 "phpMyAdmin"
+         12 "TreeSoft"
+         13 "数据库"
+         14 "SpeedTest网络测速"
+         15 "<<返回上级目录>>"
+         16 "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
     case $op in
     	1)
+    		_node _gui
+    		;;    
+    	2)
     		_node _vscode-server
     		;;
-    	2)
+    	3)
     		_node _Alist
     		;;
-    	3)
+    	4)
     		_node _nvimIDE
     		;;
-    	4)
+    	5)
     		_node _filebrowser
     		;;
-    	5)
+    	6)
     		_node _mmcd
     		;;
-    	6)
+    	7)
     		_node _UnblockNeteaseMusic
     		;;
-    	7)
+    	8)
     		_node _music-dl
     		;;
-    	8)
+    	9)
     		_node _wikijs
     		;;
-    	9)
+    	10)
     		_node _wordpress
     		;;
-    	10)
+    	11)
     		_node _phpMyAdmin
     		;;
-    	11)
+    	12)
     		_node _TreeSoft
     		;;    	
-    	12)
+    	13)
     		_node _sql
     		;;    	
-    	13)
+    	14)
     		_node _speed
     		;;    	
-    	14)
+    	15)
     		return 0
     		;;
     	*)
