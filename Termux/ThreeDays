@@ -914,9 +914,9 @@ _nvimIDE(){
 		_enter
 	}
     OPTIONS=(
-         "安装nvim IDE"
-         "卸载nvim IDE"
-         "更新nvim IDE配置文件"
+         "安装nvimIDE"
+         "卸载nvimIDE"
+         "更新nvimIDE配置文件"
          "<<返回上级目录>>")
    _dialog "nim IDE v0.5" "请选择" $OPTIONS
     case $op in
@@ -1086,7 +1086,7 @@ _wikijs(){
 		_enter
 	}
     OPTIONS=(
-         "安装｜卸载Wiki js"
+         "安装｜卸载Wiki.js"
          "启动服务"
          "关闭服务"
          "<<返回上级目录>>")
