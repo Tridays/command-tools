@@ -20,8 +20,10 @@ fi
 
 # some constant var
 THREEDAYS_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/ThreeDays"
+GUI_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/GUI"
 TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/td"
-CONFIG="$HOME/.config/td/ThreeDays"
+ThreeDays="$HOME/.config/td/ThreeDays"
+GUI="$HOME/.config/td/GUI"
 VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
 TERMUX-X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
 # github speed up
@@ -236,10 +238,14 @@ _main(){
 
 
 # shell begin
-if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
+if [ ! -e "$ThreeDays" ] || [ "$(cat $ThreeDays | wc -l)" == "0" ] || [ ! -e "$GUI" ] || [ "$(cat $GUI | wc -l)" == "0" ];then
 	mkdir -p $HOME/.config/td
 	_github_mirror_speed_up raw $THREEDAYS_RAW
-	_command "wget -c" "$url" "-O $CONFIG"
+	_command "wget -c" "$url" "-O $ThreeDays"
+
+	_github_mirror_speed_up raw $GUI_RAW
+	_command "wget -c" "$url" "-O $GUI"
+	
 	[ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 	if [ -z "$(dpkg -l | grep termux-api)" ];then
 		_command "pkg i -y" "termux-api"
@@ -261,7 +267,8 @@ if [ ! -e "$CONFIG" ] || [ "$(cat $CONFIG | wc -l)" == "0" ];then
 	_github_mirror_speed_up raw $VERSION_RAW
 	_command "wget -c" "$url" "-O $HOME/.cache/td/version"
 fi
-source $CONFIG
+source $ThreeDays
+source $GUI
 # auto update
 {
 	_github_mirror_speed_up raw $VERSION_RAW

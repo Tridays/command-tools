@@ -1,12 +1,152 @@
+#!/usr/bin/env bash
 
-
-
+# some constant var
+BREEZE_CURSOR_THEME_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-destop/breeze-cursor-theme.deb"
+TERMUX_DESTOP_XFCE_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-destop/termux-desktop-xfce_5.0.3_all.deb"
+TTF_MICROSOFT_CASCADIA_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-destop/ttf-microsoft-cascadia_4.0.2_all.deb"
 # 安装termux桌面环境
 _termux_destop(){
-
-
+	_i(){
+		termux-desktop-xfce
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}提供termux图形化桌面
+			${GREEN}Github：${WHITE}https://github.com/Yisus7u7/termux-desktop-xfce
+			EOF
+		)"
+		# install TreeSoft
+		if [ -n "$(dpkg -l | grep termux-desktop-xfce)" ];then
+			_msg W "本地已安装termux-desktop"
+			echo -en "${RED}是否卸载？[Y/N]${WHITE}" ""
+			read op
+			case $op in
+			y|Y)
+				_command "pkill -9 Xwayland"
+				_command "pkill -9 xfce4-session"
+				_command "apt purge xfce4  xfce4-goodies termux-desktop-xfce breeze-cursor-theme kvantum ttf-microsoft-cascadia audacious mousepad pavucontrol-qt geany synaptic firefox kitty -y"
+				;;
+			*)
+				return 0
+				;;
+			esac
+		fi
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		_msg W "如果网速过慢，请科学上网"
+		_command "pkg update -y"
+		_command "pkg i -y" "x11-repo "
+		_command "pkg i -y" "xfce4  xfce4-goodies termux-desktop-xfce breeze-cursor-theme kvantum ttf-microsoft-cascadia audacious mousepad pavucontrol-qt geany synaptic firefox kitty"
+		
+		_github_mirror_speed_up raw $BREEZE_CURSOR_THEME_RAW
+		_command "wget -c " "$url"
+		_command "apt install ./breeze-cursor-theme.deb"
+		
+		_github_mirror_speed_up raw $TERMUX_DESTOP_XFCE_RAW
+		_command "wget -c " "$url"
+		_command "apt install ./termux-desktop-xfce_5.0.3_all.deb"
+		
+		_github_mirror_speed_up raw $TTF_MICROSOFT_CASCADIA_RAW
+		_command "wget -c " "$url"
+		_command "apt install ./ttf-microsoft-cascadia_4.0.2_all.deb"
+		
+		cat <<-EOF > $HOME/Desktop/firefox.desktop
+		[Desktop Entry]
+		Name=firefox
+		Comment=firefox
+		Exec=firefox
+		Icon=$PREFIX/lib/firefox/browser/chrome/icons/default/default128.png
+		Terminal=false
+		Type=Application
+		Categories=Application;
+		Encoding=UTF-8
+		StartupNotify=true
+		EOF
+		
+		chmod +x $HOME/Desktop/firefox.desktop
+		_msg I "安装完成！"
+		_enter
+		
+	}
+	_start(){
+		clear
+		[ -z "$(dpkg -l | grep termux-desktop-xfce)" ] && _msg E "请先安装termux-destop！" && _enter && return 0
+		path="$PREFIX/var/service/termux-destop"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			if [ -z "\$(ps -ef | grep xfce4-session | grep -v grep)" ];then
+			    termux-x11 :1  &
+			    env DISPLAY=:1 xfce4-session
+			fi
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable termux-destop"
+		_msg I "打开Termux-X11，纵享体验！"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		clear
+		[ -z "$(dpkg -l | grep termux-desktop-xfce)" ] && _msg E "请先安装termux-destop！" && _enter && return 0
+		_command "sv-disable termux-destop"
+		_enter
+	}
+	OPTIONS=(
+         "安装｜卸载termux-destop"
+         "启动"
+         "主题"
+         "<<返回上级目录>>")
+   _dialog "首页→GUI→termux-destop" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			echo ""
+			;;
+		*)
+			return 0
+			;;
+	esac
 }
+_kitty(){
 
+	OPTIONS=(
+         "安装｜卸载Kitty"
+         "启动"
+         "主题"
+         "<<返回上级目录>>")
+   _dialog "首页→GUI→termux-destop" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _start
+			;;
+		3)
+			echo ""
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 
@@ -19,6 +159,7 @@ _GUI(){
          "Termux-Destop"
          "Kitty"
          "neovim GUI"
+         "IDEA"
          "<<返回上级目录>>"
          "退出脚本")
     
