@@ -325,10 +325,11 @@ source $GUI
 # auto update
 {
 	_github_mirror_speed_up raw $VERSION_RAW
+	mkdir -p $HOME/.cache/td
 	# 获取版本信息
 	for x in $(seq 0 5)
 	do
-		curl -s $url > $HOME/.cache/td/v 2>&1 && status=0 && break
+		curl -s $url > $HOME/.cache/td/v && status=0 && break
 	done
 	if [ "$status" == "0" ];then
 		new_version=($(cat $HOME/.cache/td/v | sed "s#.# #g"))
