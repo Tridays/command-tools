@@ -1,0 +1,43 @@
+
+
+
+# 安装termux桌面环境
+_termux_destop(){
+
+
+}
+
+
+
+
+
+
+
+# GUI
+_GUI(){
+	OPTIONS=(
+         "Termux-Destop"
+         "Kitty"
+         "neovim GUI"
+         "<<返回上级目录>>"
+         "退出脚本")
+    
+    _dialog "首页" "使用↑↓选择，也可以用手点击选项再回车哦" $OPTIONS
+    case $op in 
+    	1)
+			_node  _termux_destop
+			;;
+    	2)
+			_node  _kitty
+			;;
+    	3)
+			_node  _neovim_gui
+			;;
+    	4)
+			return 0
+			;;
+    	*)
+			exit
+			;;
+    esac
+}
