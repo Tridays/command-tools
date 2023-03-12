@@ -299,8 +299,7 @@ fi
 if [ -z "$(dpkg -l | grep termux-x11)" ];then
 	_command "pkg i -y" "x11-repo"
 	_command "pkg i -y" "xwayland"
-	_github_mirror_speed_up raw $TERMUX_X11_RAW
-	_command "wget -c" "$url"
+	_command "-raw" "wget -c" "$TERMUX_X11_RAW"
 	_command "apt install " "./termux-x11.deb"
 fi
 [ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
@@ -318,8 +317,6 @@ do
 	[ ! -e "$x" ] || [ "$(cat $x | wc -l)" == "0" ] && _update
 done
 
-
-
 source $ThreeDays
 source $GUI
 # auto update
@@ -332,8 +329,8 @@ source $GUI
 		curl -s $url > $HOME/.cache/td/v && status=0 && break
 	done
 	if [ "$status" == "0" ];then
-		new_version=($(cat $HOME/.cache/td/v | sed "s#.# #g"))
-		old_version=($(cat $HOME/.config/td/version | sed "s#.# #g"))
+		new_version=($(cat $HOME/.cache/td/v | awk -F "." '{print $1,$2,$3}'))
+		old_version=($(cat $HOME/.config/td/version | awk -F "." '{print $1,$2,$3}'))
 		echo "${new_version[*]}和${old_version[*]}"
 		for x in $(seq 0 2)
 		do

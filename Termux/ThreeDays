@@ -265,8 +265,7 @@ _filebrowser(){
 		_msg W "如果网速过慢，请科学上网"
 		mkdir -p $filebrowserPath
 		cd $filebrowserPath
-		_github_mirror_speed_up release $FILE_BROWSER_TAR_GZ_RELEASE
-		_command "wget -c " "$url" " -O filebrowser.tar.gz"
+		_command "-release" "wget -c " "$FILE_BROWSER_TAR_GZ_RELEASE" " -O filebrowser.tar.gz"
 		tar -zxvf filebrowser.tar.gz
 		chmod +x filebrowser
 		rm filebrowser.tar.gz
@@ -335,8 +334,7 @@ _UnblockNeteaseMusic(){
 		cd $HOME/github
 		[ -z "$(command -v node)" ]&&_command "pkg i -y" "nodejs"
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
-		_github_mirror_speed_up clone $UNBLOCK_NETEASE_MUSIC_CLONE
-		_command "git clone --depth 1" "$url"
+		_command "-clone" "git clone --depth 1" "$UNBLOCK_NETEASE_MUSIC_CLONE"
 		echo -e "${GREEN}安装完成!${WHITE}"
 		_enter
 	}
@@ -388,8 +386,7 @@ _music-dl(){
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
 		mkdir -p $HOME/github
 		cd $HOME/github
-		_github_mirror_speed_up clone $MUSIC_DL_CLONE
-		_command "git clone --depth 1 " "$url"
+		_command "-clone" "git clone --depth 1 " "$MUSIC_DL_CLONE"
 		cd music-dl
 		pip3 install -r requirements.txt
 		_enter
@@ -793,10 +790,8 @@ _nvimIDE(){
 		
 		##下载nvim配置
 		cd $HOME/.config
-		_github_mirror_speed_up raw "$NVIM_ZIP_RAW"
-		_command "wget -c" "$url"
-		_github_mirror_speed_up raw "$FONT_TAR_XZ_RAW"
-		_command "wget -c" "$url"
+		_command "-raw" "wget -c" "$NVIM_ZIP_RAW"
+		_command "-raw" "wget -c" "$FONT_TAR_XZ_RAW"
 		unzip -o nvim.zip
 		xz -d font.tar.xz
 		tar -xvf font.tar
@@ -810,8 +805,7 @@ _nvimIDE(){
 		##下载jdk11
 		if [  ! -e "$PREFIX/opt/openjdk-11.0.12" ];then
 			cd $PREFIX/opt
-			_github_mirror_speed_up release "$JDK11_ZIP_RELEASE"
-			_command "wget -c" "$url"
+			_command "-release" "wget -c" "$JDK11_ZIP_RELEASE"
 			unzip -o openjdk-11.0.12-aarch64.zip
 			rm -rf openjdk-11.0.12-aarch64.zip
 		fi
@@ -821,8 +815,7 @@ _nvimIDE(){
 		    _msg W "单词库已存在跳过下载！"
 		else
 			cd $HOME/.vim/dict
-			_github_mirror_speed_up release "$DICT_ZIP_RELEASE"
-			_command "wget -c" "$url" "-O dict.zip"
+			_command "-release" "wget -c" "$DICT_ZIP_RELEASE"" "-O dict.zip"
 			unzip dict.zip 
 			rm -rf dict.zip
 		fi
@@ -878,10 +871,8 @@ _nvimIDE(){
 		rm -rf nvim
 		_msg W "打包旧配置为$HOME/.config/nvim.bak.zip"
 		_enter
-		_github_mirror_speed_up raw "$NVIM_ZIP_RAW"
-		_command "wget -c" "$url"
-		_github_mirror_speed_up raw "$FONT_TAR_XZ_RAW"		
-		_command "wget -c" "$url"		
+		_command "-raw" "wget -c" "$NVIM_ZIP_RAW"	
+		_command "-raw" "wget -c" "$FONT_TAR_XZ_RAW"		
 		unzip -o nvim.zip
 		xz -d font.tar.xz
 		tar -xvf font.tar
@@ -962,15 +953,13 @@ _wikijs(){
 		# install wiki.js
 		mkdir "$PREFIX/opt/wiki"
 		cd "$PREFIX/opt/wiki"
-		_github_mirror_speed_up release $WIKIJS_RELEASE
-		_command "wget -c" "$url"
+		_command "-release" "wget -c" "$WIKIJS_RELEASE"
 		tar -zxvf wiki-js.tar.gz
 		rm -rf wiki-js.tar.gz
 		# install nodejs-16
 		cd $PREFIX/opt
 		rm -rf nodejs-16*
-		_github_mirror_speed_up raw $NODEJS16_RAW
-		_command "wget -c" "$url"
+		_command "-raw" "wget -c" "$NODEJS16_RAW"
 		xz -d nodejs-16.tar.xz
 		tar -xvf nodejs-16.tar
 		rm -rf nodejs-16.tar
@@ -1330,8 +1319,7 @@ _TreeSoft(){
 
 		[ -z "$(command -v java)" ] && _command "pkg i -y" "openjdk-17"
 		cd "$PREFIX/opt/"
-		_github_mirror_speed_up release $TOMCAT_RELEASE
-		_command "wget -c" "$url"
+		_command "-release" "wget -c" "$TOMCAT_RELEASE"
 		unzip tomcat.zip
 		rm -rf tomcat.zip
 		chmod 775 $PREFIX/opt/tomcat/bin/catalina.sh
@@ -1558,8 +1546,7 @@ _mmcd(){
 				mysql -uroot -p${password} -e "use mmcd;create table if not exists user(phone bigint(50), dev varchar(200), appid bigint(50), AppletUser varchar(200));"
 				cd "$HOME/.config/td/"
 				if [ ! -e "HMacMd5Utils.java" ];then
-					_github_mirror_speed_up raw $HMacMd5Utils_RAW
-					_command "wget -c" "$url"
+					_command "-raw" "wget -c" "$HMacMd5Utils_RAW"
 				fi
 				# Login 获取cookie
 				url="mobile.mamcharge.com/applet/api/applet/sendSMSCaptcha"
@@ -1624,8 +1611,7 @@ _mmcd(){
 		# download HMacMd5Utils.java
 		cd $HOME/.config/td
 		if [ ! -e "$HOME/.config/td/HMacMd5Utils.java" ];then
-			_github_mirror_speed_up raw $HMacMd5Utils_RAW
-			_command "wget -c" "$url"
+			_command "-raw" "wget -c" "$HMacMd5Utils_RAW"
 		fi
 		# 请求头参数
 		phone=$(mysql -N -ummcd -p123456 -e "use mmcd; select phone from user;")
@@ -1870,8 +1856,7 @@ _speed(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
-		_github_mirror_speed_up raw $SPEEDTEST_RAW
-		_command "wget -O $runfile" "$url"
+		_command "-raw" "wget -O $runfile" "$SPEEDTEST_RAW"
 		chmod +x $runfile
 		_msg I "安装完成！"
 		_enter
