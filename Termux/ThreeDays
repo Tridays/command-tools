@@ -1971,43 +1971,43 @@ _otherOP(){
     	1)
     		_node _vscode-server
     		;;
-    	3)
+    	2)
     		_node _Alist
     		;;
-    	4)
+    	3)
     		_node _nvimIDE
     		;;
-    	5)
+    	4)
     		_node _filebrowser
     		;;
-    	6)
+    	5)
     		_node _mmcd
     		;;
-    	7)
+    	6)
     		_node _UnblockNeteaseMusic
     		;;
-    	8)
+    	7)
     		_node _music-dl
     		;;
-    	9)
+    	8)
     		_node _wikijs
     		;;
-    	10)
+    	9)
     		_node _wordpress
     		;;
-    	11)
+    	10)
     		_node _phpMyAdmin
     		;;
-    	12)
+    	11)
     		_node _TreeSoft
     		;;    	
-    	13)
+    	12)
     		_node _sql
     		;;    	
-    	14)
+    	13)
     		_node _speed
     		;;    	
-    	15)
+    	14)
     		return 0
     		;;
     	*)
