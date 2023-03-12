@@ -815,7 +815,7 @@ _nvimIDE(){
 		    _msg W "单词库已存在跳过下载！"
 		else
 			cd $HOME/.vim/dict
-			_command "-release" "wget -c" "$DICT_ZIP_RELEASE"" "-O dict.zip"
+			_command "-release" "wget -c" "$DICT_ZIP_RELEASE" "-O dict.zip"
 			unzip dict.zip 
 			rm -rf dict.zip
 		fi
