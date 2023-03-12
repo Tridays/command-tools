@@ -336,6 +336,7 @@ source $GUI
 		old_version=($(cat $HOME/.config/td/version | sed "s#.# #g"))
 		for x in $(seq 0 2)
 		do
+			echo "测试：${new_version[$x]}与${old_version[$x]}"
 			[ ${new_version[$x]} -gt ${old_version[$x]} ] && termux-toast -c red -s "td脚本有更新"
 		done
 	fi
