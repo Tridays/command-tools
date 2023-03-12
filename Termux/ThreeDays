@@ -1798,7 +1798,7 @@ _sql(){
 		sleep 2
 		##配置数据库
 		_command "mysql_install_db --force"
-		_msg "可以使用这条命令初始化MySQL数据库的密码\nmysqladmin -u root password 123456"
+		_msg I "可以使用这条命令初始化MySQL数据库的密码\nmysqladmin -u root password 123456"
 		_msg W "MySQL初始密码为：123456"
 		_msg I "安装完成！"
 		_enter
