@@ -1953,7 +1953,7 @@ _otherOP(){
     OPTIONS=(
          "VScode-server"
          "Alist"
-         "nvim IDE"
+         "nvimIDE"
          "filebrowser文件管理器"
          "猛犸充电"
          "解锁网易云灰色歌曲"
