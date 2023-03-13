@@ -5,7 +5,7 @@ NVIM_ZIP_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termu
 FONT_TAR_XZ_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/nvim/font.tar.xz"
 JDK11_ZIP_RELEASE="https://github.com/WindowHZT/termux-ubuntu2004/releases/download/java-jdk-v11.0.12/openjdk-11.0.12-aarch64.zip"
 DICT_ZIP_RELEASE="https://github.com/skywind3000/ECDICT-ultimate/releases/download/1.0.0/ecdict-ultimate-sqlite.zip"
-NODEJS16_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/node/nodejs-16.tar.xz"
+NODEJS16_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/node/nodejs-16.19.1-aarch64.deb"
 HMacMd5Utils_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/mmcd/HMacMd5Utils.java"
 # 
 FILE_BROWSER_TAR_GZ_RELEASE="https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-arm64-filebrowser.tar.gz"
@@ -957,12 +957,11 @@ _wikijs(){
 		tar -zxvf wiki-js.tar.gz
 		rm -rf wiki-js.tar.gz
 		# install nodejs-16
-		cd $PREFIX/opt
+		cd $PREFIX/opt/
 		rm -rf nodejs-16*
 		_command "-raw" "wget -c" "$NODEJS16_RAW"
-		xz -d nodejs-16.tar.xz
-		tar -xvf nodejs-16.tar
-		rm -rf nodejs-16.tar
+		apt install ./nodejs-16.19.1-aarch64.deb
+		rm -rf ./nodejs-16.19.1-aarch64.deb
 	    # 选择数据库
 	    OPTIONS=(
 			"MySQL｜localhost:3306"
