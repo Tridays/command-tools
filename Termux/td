@@ -337,5 +337,5 @@ source $GUI
 		done
 	fi
 }&
-
+# 入口
 _node _main
