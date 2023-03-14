@@ -963,7 +963,7 @@ _wikijs(){
 		cd $PREFIX/opt/
 		rm -rf nodejs-16*
 		_command "-raw" "wget -c" "$NODEJS16_RAW"
-		apt install ./nodejs-16.19.1-aarch64.deb
+		dpkg -i nodejs-16.19.1-aarch64.deb
 		rm -rf ./nodejs-16.19.1-aarch64.deb
 	    # 选择数据库
 	    OPTIONS=(
