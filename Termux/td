@@ -240,10 +240,10 @@ _update(){
 	# version
 	_command "-raw" "wget -c" "$VERSION_RAW"
 	# mv
-	mv ThreeDays $HOME/.config/td/ThreeDays
-	mv GUI $HOME/.config/td/GUI
-	mv version $HOME/.config/td/version
-	mv td $PREFIX/bin/td
+	mv -f ThreeDays $HOME/.config/td/ThreeDays
+	mv -f GUI $HOME/.config/td/GUI
+	mv -f version $HOME/.config/td/version
+	mv -f td $PREFIX/bin/td
 	rm -rf $HOME/.cache/download
 	chmod 775 $PREFIX/bin/td
 	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
