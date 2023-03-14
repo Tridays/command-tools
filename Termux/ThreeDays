@@ -34,7 +34,6 @@ _fish(){
 			read op
 			case $op in
 			y|Y)
-				_stop
 				_command "apt purge" "fish" "-y"
 				;;
 			*)
@@ -47,6 +46,8 @@ _fish(){
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
 		_command "pkg i -y" "fish"
+		
+		
 		_msg I "安装完成！"
 		_enter
 	}
@@ -71,29 +72,31 @@ _fish(){
 	_theme(){
 		clear
 		[ -z "$(dpkg -l | grep fish)"  ] && _msg E "请先安装fish！" && _enter && return 0
-    	shell=$(echo $SHELL | awk -F "/" '{print $NF}')
-    	if [ "$shell" == "fish" ];then 	
-	       omf list >/dev/null 2>&1
-	       status=$?
-	       types=1
-	    else
-	       	fish <<< "omf list">/dev/null 2>&1
-	       	status=$?
-	       	types=2
-    	fi
-    	
+    	shell=$(echo $SHELL | awk -F "/" '{print $NF}')    	
     	# 安装omf
-    	if [ "$status" != "0" ];then
-    		rm -rf "$HOME/.local/share/omf"
-    		_github_mirror_speed_up raw $FISH_RAW
-    		_command "curl $url | fish "
-    	fi
-    	[ "$types" == "1" ] && omf theme >$HOME/menu
-    	[ "$types" == "2" ] && fish <<< "omf theme" >$HOME/menu
-    	
+    	fish <<< "omf list">/dev/null 2>&1
+    	rm -rf "$HOME/.local/share/omf"
+    	mkdir -p $HOME/.cache/download
+    	cd $HOME/.cache/download
+    	_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/o"
+   		nohup fish $HOME/.cache/download/o &
+    	wait
+    	cd $HOME
+		fish <<< "omf theme" >$HOME/menu
+		    	
     	row=$(cat ~/menu | grep -n "Available" | awk -F ":" '{print $1}')
     	sed -i "1,$row"d $HOME/menu
 		
+		count=0
+		for x in $(cat $HOME/menu | awk '{print $1}') $(cat $HOME/menu | awk '{print $2}') $(cat $HOME/menu | awk '{print $3}')
+		do
+			OPTIONS[$count]="$x"
+			let count++
+		done
+		tmp=${OPTIONS[*]}
+		echo "测试${OPTIONS[*]}"
+		_enter
+:<<Q
 		count=1
 		count1=2
 		count2=1
@@ -113,25 +116,23 @@ _fish(){
 				let count1++
 			done
 		done < ~/menu
-		
+Q
 		
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
-		v=${thing[$op]}
+		v=${tmp[$op]}
 		OPTIONS=(
-			"启用${thing[$op]}"
-			"移除${thing[$op]}")
+			"启用$v"
+			"移除$v")
 		_dialog "首页→终端美化→fish→主题→启用/移除" "请选择" $OPTIONS
 		case $op in
 			1)
 				clear
-		    	[ "$types" == "1" ] && omf install $v
-  			  	[ "$types" == "2" ] && fish <<< "omf install $v"
+  			  	fish <<< "omf install $v"
 				_enter
 				;;
 			2)
 				clear
-		    	[ "$types" == "1" ] && omf remove $v
-  			  	[ "$types" == "2" ] && fish <<< "omf remove $v"
+  			  	fish <<< "omf remove $v"
 				_enter
 				;;
 		esac
@@ -258,7 +259,7 @@ _filebrowser(){
 			EOF
 		)"
 		# install filebrowser
-		_checkInstall "$filebrowserPath"  && _stop && rm -rf "$PREFIX/var/service/filebrowser" || return 0
+		_checkInstall "$filebrowserPath"  && pkill -9 filebrowser && rm -rf "$PREFIX/var/service/filebrowser" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -271,7 +272,7 @@ _filebrowser(){
 		rm filebrowser.tar.gz
 		$filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config init 
 		$filebrowserPath/filebrowser users add root 123456 --perm.admin -d $filebrowserPath/filebrowser.db 
-		$filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config set --address 127.0.0.1 --port 1234 --root "/data/data/com.termux/files/home" --locale zh-cn 
+		$filebrowserPath/filebrowser -d $filebrowserPath/filebrowser.db config set --address 127.0.0.1 --port 1234 --root "$HOME" --locale zh-cn 
 		_msg I "安装完成！"
 		_enter
 	}
@@ -290,7 +291,7 @@ _filebrowser(){
 			# log
 			cat<<-EOF>${path}/log/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			svlogger="$PREFIX/share/termux-services/svlogger"
 			exec "\${svlogger}" "\$@"
 			EOF
 			chmod +x ${path}/log/run
@@ -327,11 +328,12 @@ _filebrowser(){
 	esac
 }
 _UnblockNeteaseMusic(){
+	path="$PREFIX/opt/UnblockNeteaseMusic"
 	##解锁网易云
 	i(){
-		_checkInstall "$HOME/github/UnblockNeteaseMusic"
-		mkdir -p $HOME/github
-		cd $HOME/github
+		_checkInstall "$path"
+		mkdir -p $PREFIX/opt
+		cd $PREFIX/opt
 		[ -z "$(command -v node)" ]&&_command "pkg i -y" "nodejs"
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
 		_command "-clone" "git clone --depth 1" "$UNBLOCK_NETEASE_MUSIC_CLONE"
@@ -339,10 +341,10 @@ _UnblockNeteaseMusic(){
 		_enter
 	}
 	start(){
-		[ ! -e "$HOME/github/UnblockNeteaseMusic" ]&&echo -e "${YELLOW}请先安装UnblockNeteaseMusic！${WHITE}"&&_enter&&return
+		[ ! -e "$path" ]&&echo -e "${YELLOW}请先安装UnblockNeteaseMusic！${WHITE}"&&_enter&&return
 		_command "pkill node"
 		sleep 1
-		_command "node $HOME/github/UnblockNeteaseMusic/app.js -p 8008 -a 127.0.0.1 "
+		_command "node $path/app.js -p 8008 -a 127.0.0.1 "
 		echo -e "$(
 		cat <<-EOF
 			●nodejs无法后台
@@ -353,7 +355,7 @@ _UnblockNeteaseMusic(){
 		_enter
 	}
 	stop(){
-		[ ! -e "$HOME/github/UnblockNeteaseMusic" ]&&echo -e "${YELLOW}请先安装music-dl！${WHITE}"&&_enter&&return
+		[ ! -e "$path" ]&&echo -e "${YELLOW}请先安装music-dl！${WHITE}"&&_enter&&return
 		_command "pkill node"
 		_enter
 	}
@@ -379,21 +381,22 @@ _UnblockNeteaseMusic(){
 	    esac	
 }
 _music-dl(){
+	path=$PREFIX/opt/music-dl
 	i(){
-		_checkInstall $HOME/github/music-dl
+		_checkInstall $path
 		[ ! "$?" == "0" ] && return 0
 		[ -z "$(command -v python)" ]&&_command "pkg i -y" "python"
 		[ -z "$(command -v git)" ]&&_command "pkg i -y" "git"
-		mkdir -p $HOME/github
-		cd $HOME/github
+		mkdir -p $PREFIX/opt
+		cd $PREFIX/opt
 		_command "-clone" "git clone --depth 1 " "$MUSIC_DL_CLONE"
 		cd music-dl
 		pip3 install -r requirements.txt
 		_enter
 	}
 	start(){
-		[ ! -e "$HOME/github/music-dl" ]&&echo -e "${YELLOW}请先安装music-dl！${WHITE}"&&_enter&&return
-		cd $HOME/github/music-dl
+		[ ! -e "$path" ] && echo -e "${YELLOW}请先安装music-dl！${WHITE}" && _enter && return
+		cd $path
 		_command "./music-dl --help"
 		_command "./music-dl"
 		_enter
@@ -432,7 +435,7 @@ _vscode-server(){
 			read op
 			case $op in
 			y|Y)
-				_stop
+				pkill -9 code-server
 				_command "apt purge" "code-server" "-y"
 				rm -rf "$PREFIX/var/service/VScode-server"
 				;;
@@ -465,7 +468,7 @@ _vscode-server(){
 			# log
 			cat<<-EOF>${path}/log/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			svlogger="$PREFIX/share/termux-services/svlogger"
 			exec "\${svlogger}" "\$@"
 			EOF
 			chmod +x ${path}/log/run
@@ -560,7 +563,7 @@ _Alist(){
 			read op
 			case $op in
 			y|Y)
-				_stop
+				pkill -9 alist
 				_command "apt purge" "alist" "-y"
 				rm -rf "$PREFIX/var/service/Alist"
 				rm -rf $PREFIX/bin/data
@@ -593,7 +596,7 @@ _Alist(){
 			# log
 			cat<<-EOF>${path}/log/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			svlogger="$PREFIX/share/termux-services/svlogger"
 			exec "\${svlogger}" "\$@"
 			EOF
 			chmod +x ${path}/log/run
@@ -945,7 +948,7 @@ _wikijs(){
 			\t\t● 16.0.0≤ node <17.0.0  (推荐)
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/wiki" && _stop && rm -rf "$PREFIX/var/service/wiki" || return 0
+		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1090,7 +1093,7 @@ _wordpress(){
 			\t\t●nginx
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/wordpress" && _command "pkill nginx; pkill  php-fpm" && rm -rf $PREFIX/etc/nginx/config/wordpress.conf || return 0
+		_checkInstall "$PREFIX/opt/wordpress" && rm -rf $PREFIX/etc/nginx/config/wordpress.conf || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1213,7 +1216,7 @@ _phpMyAdmin(){
 			\t\t●nginx
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/phpMyAdmin" && _command "pkill nginx; pkill  php-fpm" && rm -rf $PREFIX/etc/nginx/config/phpMyAdmin.conf || return 0
+		_checkInstall "$PREFIX/opt/phpMyAdmin" && rm -rf $PREFIX/etc/nginx/config/phpMyAdmin.conf || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1311,7 +1314,7 @@ _TreeSoft(){
 			EOF
 		)"
 		# install TreeSoft
-		_checkInstall "$PREFIX/opt/tomcat" && _command "pkill java" && rm -rf "$PREFIX/var/service/tomcat" || return 0
+		_checkInstall "$PREFIX/opt/tomcat" && _command "pkill -9 java" && rm -rf "$PREFIX/var/service/tomcat" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -1886,32 +1889,6 @@ _speed(){
 }
 
 
-_gui(){
-	_kitty(){
-	
-	export XDG_RUNTIME_DIR=${TMPDIR}
-	pkg install imagemagick
-	termux-x11 :1 -dpi 300 &
-	env DISPLAY=:1 kitty --config remember_window_size  yes initial_window_width  640 initial_window_height 400
-	
-	}
-    OPTIONS=(
-         "Kitty终端"
-         "待定"
-         "<<返回上级目录>>")
-   _dialog "首页→其他选项→GUI" "请选择" $OPTIONS
-    case $op in
-   		1)
-   			_node _kitty
-   			;;
-		2)
-			echo
-			;;
-		*)
-			return 0
-			;;
-	esac
-}
 
 # main
 _otherOP(){

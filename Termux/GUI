@@ -149,7 +149,32 @@ _kitty(){
 }
 
 
-
+_gui(){
+	_kitty(){
+	
+	export XDG_RUNTIME_DIR=${TMPDIR}
+	pkg install imagemagick
+	termux-x11 :1 -dpi 300 &
+	env DISPLAY=:1 kitty --config remember_window_size  yes initial_window_width  640 initial_window_height 400
+	
+	}
+    OPTIONS=(
+         "Kitty终端"
+         "待定"
+         "<<返回上级目录>>")
+   _dialog "首页→其他选项→GUI" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _kitty
+   			;;
+		2)
+			echo
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 
