@@ -228,7 +228,7 @@ _dialog(){
 _update(){
 	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
 	rm -rf $HOME/.cache/download
-	mkdir -p $HOME/.cache/download
+	mkdir -p $HOME/.cache/download $HOME/.config/td
 	#rm -rf $PREFIX/bin/td $ThreeDays
 	cd $HOME/.cache/download
 	# fun文件
@@ -247,6 +247,7 @@ _update(){
 	rm -rf $HOME/.cache/download
 	chmod 775 $PREFIX/bin/td
 	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
+	echo -e "\nRun the ${RED}td${WHITE} command to start\n"
 	_enter
 	exit
 }
