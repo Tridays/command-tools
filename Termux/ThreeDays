@@ -88,10 +88,10 @@ _fish(){
     		cd $HOME
     	fi
 		OPTIONS=($(fish <<< "omf.index.query --type=theme"))
-		tmp=${OPTIONS[*]}
+		tmp=(${OPTIONS[*]})
 		
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
-		v=${tmp[$op]}
+		v=${tmp[$(($op-1))]}
 		OPTIONS=(
 			"使用$v主题"
 			"移除$v主题")
@@ -100,8 +100,11 @@ _fish(){
 			1)
 				clear
   			  	fish <<< "omf install $v"
-  			  	_msg W "如果主题下载失败请科学上网！"
-  			  	_msg W "重新打开终端主题生效！"
+  			  	if [ "$?" == "0" ];then
+  			  	  	_msg W "重新打开终端主题生效！"
+  			  	else
+	  			  	_msg W "主题下载失败请科学上网！"
+  			  	fi
 				_enter
 				;;
 			2)
