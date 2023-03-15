@@ -46,8 +46,14 @@ _fish(){
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
 		_command "pkg i -y" "fish"
-		
-		
+		# font
+		_command "-raw" "wget -c" "$FONT_TAR_XZ_RAW"
+		xz -d font.tar.xz
+		tar -xvf font.tar
+		mv -f font.ttf $HOME/.termux
+		rm -rf font.tar
+		termux-reload-settings
+		_msg W "如果字体显示不正常，请使用下面命令配置字体\ntermux-reload-settings"
 		_msg I "安装完成！"
 		_enter
 	}
