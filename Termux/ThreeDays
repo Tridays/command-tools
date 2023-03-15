@@ -73,66 +73,41 @@ _fish(){
 		clear
 		[ -z "$(dpkg -l | grep fish)"  ] && _msg E "请先安装fish！" && _enter && return 0
     	shell=$(echo $SHELL | awk -F "/" '{print $NF}')    	
+    	
     	# 安装omf
     	fish <<< "omf list">/dev/null 2>&1
-    	rm -rf "$HOME/.local/share/omf"
-    	mkdir -p $HOME/.cache/download
-    	cd $HOME/.cache/download
-    	_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/o"
-   		nohup fish $HOME/.cache/download/o &
-    	wait
-    	cd $HOME
-		fish <<< "omf theme" >$HOME/menu
-		    	
-    	row=$(cat ~/menu | grep -n "Available" | awk -F ":" '{print $1}')
-    	sed -i "1,$row"d $HOME/menu
-		
-		count=0
-		for x in $(cat $HOME/menu | awk '{print $1}') $(cat $HOME/menu | awk '{print $2}') $(cat $HOME/menu | awk '{print $3}')
-		do
-			OPTIONS[$count]="$x"
-			let count++
-		done
+    	if [ ! "$?" == "0" ];then
+	    	#rm -rf "$HOME/.local/share/omf"
+			mkdir -p $HOME/.cache/download
+			cd $HOME/.cache/download
+			rm -rf ./install
+			_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/install"
+			row=$(cat ./install | grep -n "exec" | awk -F ":" '{print $1}')
+   			sed -i ${row}d ./install
+   			fish ./install
+    		cd $HOME
+    	fi
+		OPTIONS=($(fish <<< "omf.index.query --type=theme"))
 		tmp=${OPTIONS[*]}
-		echo "测试${OPTIONS[*]}"
-		_enter
-:<<Q
-		count=1
-		count1=2
-		count2=1
-		OPTIONS[0]="0"
-		OPTIONS[1]="取消"
-		thing[0]="0"
-		while read x
-		do
-			for y in $x
-			do
-				OPTIONS[$count1]="$count2"
-				let count1++
-				OPTIONS[$count1]="$y"
-				thing[$count]="$y"
-				let count++
-				let count2++
-				let count1++
-			done
-		done < ~/menu
-Q
 		
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
 		v=${tmp[$op]}
 		OPTIONS=(
-			"启用$v"
-			"移除$v")
+			"使用$v主题"
+			"移除$v主题")
 		_dialog "首页→终端美化→fish→主题→启用/移除" "请选择" $OPTIONS
 		case $op in
 			1)
 				clear
   			  	fish <<< "omf install $v"
+  			  	_msg W "如果主题下载失败请科学上网！"
+  			  	_msg W "重新打开终端主题生效！"
 				_enter
 				;;
 			2)
 				clear
   			  	fish <<< "omf remove $v"
+  			  	_msg W "重新打开终端生效！"
 				_enter
 				;;
 		esac
