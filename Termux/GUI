@@ -105,8 +105,8 @@ _termux_destop(){
 	}
 	OPTIONS=(
          "安装｜卸载termux-destop"
-         "启动"
-         "主题"
+         "启动服务"
+         "停止服务"
          "<<返回上级目录>>")
    _dialog "首页→GUI→termux-destop" "请选择" $OPTIONS
     case $op in
@@ -117,7 +117,7 @@ _termux_destop(){
 			_node _start
 			;;
 		3)
-			echo ""
+			_node _stop
 			;;
 		*)
 			return 0
@@ -125,7 +125,41 @@ _termux_destop(){
 	esac
 }
 _kitty(){
-
+	_start(){
+		clear
+		[ -z "$(dpkg -l | grep termux-desktop-xfce)" ] && _msg E "请先安装termux-destop！" && _enter && return 0
+		path="$PREFIX/var/service/termux-destop"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			if [ -z "\$(ps -ef | grep xfce4-session | grep -v grep)" ];then
+			    termux-x11 :2  &
+			    env DISPLAY=:1 xfce4-session
+			    full
+			fi
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable termux-destop"
+		_msg I "打开Termux-X11，纵享体验！"
+		_msg W "日志：$PREFIX/var/log/sv/"
+		_enter
+	}
+	_stop(){
+		clear
+		[ -z "$(dpkg -l | grep termux-desktop-xfce)" ] && _msg E "请先安装termux-destop！" && _enter && return 0
+		_command "sv-disable termux-destop"
+		_enter
+	}
 	OPTIONS=(
          "安装｜卸载Kitty"
          "启动"
@@ -149,9 +183,10 @@ _kitty(){
 }
 
 
+
+
 _gui(){
 	_kitty(){
-	
 	export XDG_RUNTIME_DIR=${TMPDIR}
 	pkg install imagemagick
 	termux-x11 :1 -dpi 300 &
@@ -177,14 +212,10 @@ _gui(){
 }
 
 
-
 # GUI
 _GUI(){
 	OPTIONS=(
          "Termux-Destop"
-         "Kitty"
-         "neovim GUI"
-         "IDEA"
          "<<返回上级目录>>"
          "退出脚本")
     
@@ -194,20 +225,7 @@ _GUI(){
 			_node  _termux_destop
 			;;
     	2)
-			_msg W "待开发"
-			_enter
-			;;
-    	3)
-			_msg W "待开发"
-			_enter
-			;;
-    	4)
-			_msg W "待开发"
-			_enter
-			;;
-    	5)
-			_msg W "待开发"
-			_enter
+			return 0
 			;;
     	*)
 			exit
