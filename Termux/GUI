@@ -87,7 +87,7 @@ _termux_destop(){
 			# log
 			cat<<-EOF>${path}/log/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			svlogger="$PREFIX/share/termux-services/svlogger"
 			exec "\${svlogger}" "\$@"
 			EOF
 			chmod +x ${path}/log/run
@@ -144,7 +144,7 @@ _kitty(){
 			# log
 			cat<<-EOF>${path}/log/run
 			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="/data/data/com.termux/files/usr/share/termux-services/svlogger"
+			svlogger="$PREFIX/share/termux-services/svlogger"
 			exec "\${svlogger}" "\$@"
 			EOF
 			chmod +x ${path}/log/run
