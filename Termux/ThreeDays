@@ -1037,7 +1037,7 @@ _wikijs(){
 	}
 	_stop(){
 		clear
-		[ ! -e "$HOME/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
+		[ ! -e "$PREFIX/opt/wiki"  ] && _msg E "请先安装wiki.js！" && _enter && return 0
 		_command "sv-disable wiki"
 		_enter
 	}
