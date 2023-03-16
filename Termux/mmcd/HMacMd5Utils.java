@@ -76,8 +76,8 @@ public class HMacMd5Utils {
 
     public static void main(String[] args) {
         String pno = args[0];
-        long millis = System.currentTimeMillis();
         String a;
+        long millis = System.currentTimeMillis();
         if ( args.length == 1 ){
         	a = HMacMd5Utils.a("0f90529eeccc1539b5cf6f0101a97ff2", "{\"nationalCode\":\"86\",\"phoneNum\":\""+pno+"\",\"type\":\"1\"}"+millis);
         }else if ( args.length == 2 ){
