@@ -224,7 +224,7 @@ _dialog(){
 
 # 更新脚本
 _update(){
-	[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
+	[ -z "$(command -v wget)" ] && _command "yes | pkg update" && _command "pkg i -y" "wget"
 	rm -rf $HOME/.cache/download
 	mkdir -p $HOME/.cache/download $HOME/.config/td
 	#rm -rf $PREFIX/bin/td $ThreeDays

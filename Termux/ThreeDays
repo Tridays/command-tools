@@ -45,6 +45,7 @@ _fish(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
+		_command "yes | pkg update"
 		_command "pkg i -y" "fish"
 		# font
 		_command "-raw" "wget -c" "$FONT_TAR_XZ_RAW"
@@ -434,6 +435,7 @@ _vscode-server(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
+		_command "yes | pkg update"
 		_command "pkg i -y" "tur-repo code-server"
 		_config
 		_msg I "安装完成！"
@@ -563,6 +565,7 @@ _Alist(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
+		_command "yes | pkg update"
 		_command "pkg i -y" "alist"
 		_msg I "安装完成！"
 		_enter
@@ -772,7 +775,7 @@ _nvimIDE(){
 			deb https://mirrors.bfsu.edu.cn/termux/apt/termux-main stable main
 		EOF
 
-		_command "pkg update -y"
+		_command "yes | pkg update"
 		_command "pkg i " "tar zip neovim git zig python nodejs openjdk-17* wget stylua maven gradle lua53 ripgrep termux-api clang lua-language-server php apache2 nginx php-fpm php-apache yarn graphviz tree golang composer" " -y"
 		_command "npm install -g " " eslint clangd bash-language-server vscode-langservers-extracted typescript typescript-language-server"
 		_command "pip install "  " black spell autopep8 prettier flake8 debugpy ptvsd neovim"
@@ -1773,7 +1776,7 @@ _sql(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
-		_command "pkg update"
+		_command "yes | pkg update"
 		_command "pkg i -y" "mariadb sqlite"
 		sleep 2
 		##配置数据库
