@@ -19,12 +19,12 @@ else
 fi
 
 # some constant var
-THREEDAYS_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/ThreeDays"
-GUI_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/GUI"
-TERMUX_AARCH64_TD_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/td"
+THREEDAYS_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/ThreeDays"
+GUI_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/GUI"
+TERMUX_AARCH64_TD_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/td"
+VERSION_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/version"
 ThreeDays="$HOME/.config/td/ThreeDays"
 GUI="$HOME/.config/td/GUI"
-VERSION_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/version"
 TERMUX_X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
 
 # github speed up

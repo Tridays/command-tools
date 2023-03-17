@@ -25,9 +25,9 @@ ISH_TD=""
 UBUNTU2004_AARCH64_TD=""
 UBUNTU2004_AMD64_TD=""
 # github speed up
-CLONE_SPEED_UP_LINK=("gitclone.com" "https://ghproxy.com/" )
+CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
-RAW_SPEED_UP_LINK=("https://ghproxy.com/" "https://gh.api.99988866.xyz/")
+RAW_SPEED_UP_LINK=("raw.fastgit.org" "raw.gitfast.tk") # "raw.fastgit.org" https://ghproxy.com/
 
 #  Github国内镜像网站
 _github_mirror_speed_up(){
@@ -39,7 +39,7 @@ _github_mirror_speed_up(){
 		r=$((RANDOM%n))
 		if [ $r -eq 0 ];then
 			url="${CLONE_SPEED_UP_LINK[0]}"
-			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
+			url=$(echo $2 | sed "s#https://#$url#g")
 		elif [ $r -eq 1 ];then
 			url="${CLONE_SPEED_UP_LINK[1]}${2}"
 		fi
@@ -56,11 +56,13 @@ _github_mirror_speed_up(){
 	raw)
 		n=${#RAW_SPEED_UP_LINK[@]}
 		r=$((RANDOM%n))
-		echo $((RANDOM%1))
+		#echo $((RANDOM%1))
 		if [ $r -eq 0 ];then
-			url="${RAW_SPEED_UP_LINK[0]}${2}"
+			url="${RAW_SPEED_UP_LINK[0]}"
+			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
 		elif [ $r -eq 1 ];then
-			url="${RAW_SPEED_UP_LINK[1]}${2}"
+			url="${RAW_SPEED_UP_LINK[1]}"
+			url=$(awk -F "/" "{\$3 = \"$url\" ; print \$0}" OFS="/" <<<${2})
 		fi
 		;;
 	esac
@@ -72,6 +74,16 @@ _enter() { echo -en "\n\n${GREEN}Press Enter to continue${WHITE}";read op ;:;}
 
 # exec command
 _command(){
+	if [ "$1" == "-clone" ];then
+		status=1
+		shift 1
+	elif [ "$1" == "-release" ];then
+		status=2
+		shift 1
+	elif [ "$1" == "-raw" ];then
+		status=3
+		shift 1
+	fi
 	# args：$1 $2 $3
 	case $# in
 	1)
@@ -83,21 +95,32 @@ _command(){
 		do
 			while :
 			do
-				echo -e "\n${BLUE}[*]$white${GREEN}$1 $x $3 ${WHITE}"
-				command="$1 $x $3"
+				y=$x
+				if [ "$status" == "1" ];then
+					_github_mirror_speed_up clone $x
+					y=$url
+				elif [ "$status" == "2" ];then
+					_github_mirror_speed_up release $x
+					y=$url				
+				elif [ "$status" == "3" ];then
+					_github_mirror_speed_up raw $x
+					y=$url
+				fi
+				echo -e "\n${BLUE}[*]$white${GREEN}$1 $y $3 ${WHITE}"
+				command="$1 $y $3"
 				command $command
 				if [ "$?" == "0" ];then
 					break
 				else
-					echo -e "\n${RED}Failed，please try again！${WHITE}"
+					echo -e "\n${RED}Erro：Failed，please try again！${WHITE}"
 					_enter
 				fi
 			done
 		done		
 		;;
 	esac
-	
 }
+
 
 
 # select UI
