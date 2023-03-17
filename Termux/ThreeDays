@@ -81,21 +81,25 @@ _fish(){
     	shell=$(echo $SHELL | awk -F "/" '{print $NF}')    	
     	
     	# 安装omf
-	    rm -rf "$HOME/.local/share/omf"
-		mkdir -p $HOME/.cache/download
-		cd $HOME/.cache/download
-		rm -rf ./install
-		_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/install"
-		row=$(cat ./install | grep -n "exec" | awk -F ":" '{print $1}')
-		sed -i ${row}d ./install
-		fish ./install
-   		cd $HOME
-
+    	fish <<< "omf list">/dev/null 2>&1
+    	if [ ! "$?" == "0" ];then
+	    	#rm -rf "$HOME/.local/share/omf"
+			mkdir -p $HOME/.cache/download
+			cd $HOME/.cache/download
+			rm -rf ./install
+			_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/install"
+			row=$(cat ./install | grep -n "exec" | awk -F ":" '{print $1}')
+   			sed -i ${row}d ./install
+   			fish ./install
+    		cd $HOME
+    	fi
 		OPTIONS=($(fish <<< "omf.index.query --type=theme"))
 		tmp=(${OPTIONS[*]})
-		
+		[ ${#tmp[@]} -lt 10 ] && _msg E "未查询到主题，请重试！" && _enter && return 0
+
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
-		v=${tmp[$(($op-1))]}
+        n=$(($op-1))
+		v=${tmp[$n]}
 		OPTIONS=(
 			"使用$v主题"
 			"移除$v主题")
