@@ -970,9 +970,12 @@ _wikijs(){
 				3>&1 1>&2 2>&3 3>&-)
 				
 				clear
-				mysql -uroot -p$password -e "create database if not exists wiki;show databases;"
+				mysql -uroot -p${password} -e "create database if not exists wiki;show databases;"
 				if [ "$?" == "0" ];then
+					mysql -uroot -p${password} -e "CREATE USER  if not exists 'wikijs'@'localhost' IDENTIFIED BY '${password}';"
+					mysql -uroot -p${password} -e "GRANT ALL ON wiki.* TO 'wikijs'@'localhost';"
 					_msg W "成功创建wiki数据库！"
+					_msg W "User：wikijs  Password：${password}"
 					_enter
 					break
 				else
@@ -983,7 +986,7 @@ _wikijs(){
 			# 配置wiki.js文件
 			cd $PREFIX/opt/wiki
 			cp config.sample.yml config.yml
-			sed -i "s#type: postgres#type: mysql#g;s#port: 5432#port: 3306#g;s#user: wikijs#user: root#g;s#pass: wikijsrocks#pass: $password#g" config.yml
+			sed -i "s#type: postgres#type: mysql#g;s#port: 5432#port: 3306#g;s#user: wikijs#user: wikijs#g;s#pass: wikijsrocks#pass: ${password}#g" config.yml
 		# MariaDB
 		elif [ "$op" == "2" ];then
 			echo
@@ -1103,7 +1106,10 @@ _wordpress(){
 			clear
 			mysql -uroot -p$password -e "create database if not exists wordpress;show databases;"
 			if [ "$?" == "0" ];then
+				mysql -uroot -p${password} -e "CREATE USER  if not exists 'wordpress'@'localhost' IDENTIFIED BY '${password}';"
+				mysql -uroot -p${password} -e "GRANT ALL ON wordpress.* TO 'wordpress'@'localhost';"
 				_msg W "成功创建wordpress数据库！"
+				_msg W "User：wordpress  Password：${password}"
 				_enter
 				break
 			else
@@ -1117,8 +1123,8 @@ _wordpress(){
 		cp wp-config-sample.php wp-config.php
 		file=$PREFIX/opt/wordpress/wp-config.php
 		sed -i "s#database_name_here#wordpress#g" $file
-		sed -i "s#username_here#root#g" $file
-		sed -i "s#password_here#$password#g" $file
+		sed -i "s#username_here#wordpress#g" $file
+		sed -i "s#password_here#${password}#g" $file
 		sed -i "s#localhost#127.0.0.1#g" $file
 		
 		# nginx配置
@@ -1773,9 +1779,7 @@ _sql(){
 		##配置数据库
 		_command "mysql_install_db --force"
 		_start
-		sleep 3
-		mysqladmin -u root password 123456
-		_msg W "MySQL初始密码为：123456"
+		_msg W "MySQL初始密码命令为：mysqladmin -u root password 123456"
 		_msg I "安装完成！"
 		_enter
 	}
