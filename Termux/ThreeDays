@@ -1787,24 +1787,6 @@ _sql(){
 	_start(){
 		clear
 		[ -z "$(dpkg -l | grep mysql)"  ] && _msg E "请先安装数据库！" && _enter && return 0
-		path="$PREFIX/var/service/mysqld"
-		if [ ! -e "${path}" ];then
-			mkdir -p ${path}/log
-			# exec
-			cat<<-EOF>${path}/run
-			#!/data/data/com.termux/files/usr/bin/sh
-			exec mysqld --basedir=$PREFIX --datadir=$PREFIX/var/lib/mysql 2>&1
-			fi
-			EOF
-			chmod +x ${path}/run
-			# log
-			cat<<-EOF>${path}/log/run
-			#!/data/data/com.termux/files/usr/bin/bash
-			svlogger="$PREFIX/share/termux-services/svlogger"
-			exec "\${svlogger}" "\$@"
-			EOF
-			chmod +x ${path}/log/run
-		fi
 		_command "sv-enable mysqld"
 		_msg W "MySQL：localhost:3306"
 		_msg W "日志：$PREFIX/var/log/sv/"
