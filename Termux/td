@@ -230,13 +230,17 @@ _update(){
 	#rm -rf $PREFIX/bin/td $ThreeDays
 	cd $HOME/.cache/download
 	# fun文件
-	_command "-raw" "wget -c" "$THREEDAYS_RAW"
+	#_command "-raw" "wget -c" "$THREEDAYS_RAW"
+	_command "wget -c" "$THREEDAYS_RAW"
 	# GUI
-	_command "-raw" "wget -c" "$GUI_RAW"
+	#_command "-raw" "wget -c" "$GUI_RAW"
+	_command "wget -c" "$GUI_RAW"
 	# main脚本
-	_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
+	#_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
+	_command "wget -c" "$TERMUX_AARCH64_TD_RAW"
 	# version
-	_command "-raw" "wget -c" "$VERSION_RAW"
+	#_command "-raw" "wget -c" "$VERSION_RAW"
+	_command "wget -c" "$VERSION_RAW"
 	# mv
 	mv -f ThreeDays $HOME/.config/td/ThreeDays
 	mv -f GUI $HOME/.config/td/GUI
@@ -333,5 +337,5 @@ source $GUI
 		done
 	fi
 }&
-# 入口
+# main
 _node _main

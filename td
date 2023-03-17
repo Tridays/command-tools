@@ -134,8 +134,8 @@ do
 		_command "pkg update -y"
 		_command "pkg i -y" "wget"
 		rm -rf $PREFIX/bin/td
-		_github_mirror_speed_up raw $TERMUX_AARCH64_TD
-		_command "wget -c" "$url" "-O $PREFIX/bin/td"
+		#_github_mirror_speed_up raw $TERMUX_AARCH64_TD
+		_command "wget -c" "$TERMUX_AARCH64_TD" "-O $PREFIX/bin/td"
 		
 		chmod 775 $PREFIX/bin/td
 		echo -e "\nRun the ${RED}td${WHITE} command to start\n"
