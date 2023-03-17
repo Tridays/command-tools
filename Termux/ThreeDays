@@ -1780,8 +1780,9 @@ _sql(){
 		_command "mysql_install_db --force"
 		_start
 		_msg W "MySQL初始密码命令为：mysqladmin -u root password 123456"
-		_msg I "安装完成！"
+		_msg I "安装完成！回车会重启～"
 		_enter
+		pkill -9 $(echo $SHELL | awk -F "/" '{print $NF}')
 	}
 	_start(){
 		clear
