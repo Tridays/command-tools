@@ -1778,9 +1778,7 @@ _sql(){
 		sleep 2
 		##配置数据库
 		_command "mysql_install_db --force"
-		_start
-		_msg W "MySQL初始密码命令为：mysqladmin -u root password 123456"
-		_msg I "安装完成！回车会重启～"
+		_msg I "安装完成！回车会重启～\n重启后再启动MySQL服务！"
 		_enter
 		pkill -9 $(echo $SHELL | awk -F "/" '{print $NF}')
 	}
@@ -1788,6 +1786,7 @@ _sql(){
 		clear
 		[ -z "$(dpkg -l | grep mysql)"  ] && _msg E "请先安装数据库！" && _enter && return 0
 		_command "sv-enable mysqld"
+		_msg W "MySQL安装后默认无密码\n初始密码命令为：mysqladmin -u root password 123456"
 		_msg W "MySQL：localhost:3306"
 		_msg W "日志：$PREFIX/var/log/sv/"
 		_enter
