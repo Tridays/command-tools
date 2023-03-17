@@ -1772,7 +1772,7 @@ _sql(){
 		sleep 2
 		##配置数据库
 		_command "mysql_install_db --force"
-		nohup mysqld &
+		_start
 		sleep 3
 		mysqladmin -u root password 123456
 		_msg W "MySQL初始密码为：123456"
