@@ -20,7 +20,7 @@ else
 fi
 
 # some constant var
-TERMUX_AARCH64_TD="https://github.com/Tridays/command-tools/blob/main/Termux/td"
+TERMUX_AARCH64_TD="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/td"
 ISH_TD=""
 UBUNTU2004_AARCH64_TD=""
 UBUNTU2004_AMD64_TD=""
