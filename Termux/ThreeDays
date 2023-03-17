@@ -81,18 +81,16 @@ _fish(){
     	shell=$(echo $SHELL | awk -F "/" '{print $NF}')    	
     	
     	# 安装omf
-    	fish <<< "omf list">/dev/null 2>&1
-    	if [ ! "$?" == "0" ];then
-	    	#rm -rf "$HOME/.local/share/omf"
-			mkdir -p $HOME/.cache/download
-			cd $HOME/.cache/download
-			rm -rf ./install
-			_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/install"
-			row=$(cat ./install | grep -n "exec" | awk -F ":" '{print $1}')
-   			sed -i ${row}d ./install
-   			fish ./install
-    		cd $HOME
-    	fi
+	    rm -rf "$HOME/.local/share/omf"
+		mkdir -p $HOME/.cache/download
+		cd $HOME/.cache/download
+		rm -rf ./install
+		_command "-raw" "wget -c" "$FISH_RAW" "-O $HOME/.cache/download/install"
+		row=$(cat ./install | grep -n "exec" | awk -F ":" '{print $1}')
+		sed -i ${row}d ./install
+		fish ./install
+   		cd $HOME
+
 		OPTIONS=($(fish <<< "omf.index.query --type=theme"))
 		tmp=(${OPTIONS[*]})
 		
@@ -107,6 +105,7 @@ _fish(){
 				clear
   			  	fish <<< "omf install $v"
   			  	if [ "$?" == "0" ];then
+  			  		fish <<< "omf theme $v"
   			  	  	_msg W "重新打开终端主题生效！"
   			  	else
 	  			  	_msg W "主题下载失败请科学上网！"
