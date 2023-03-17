@@ -83,7 +83,7 @@ _fish(){
     	# 安装omf
     	fish <<< "omf.index.query --type=theme" >/dev/null 2>&1
     	if [ ! "$?" == "0" ];then
-	    	#rm -rf "$HOME/.local/share/omf"
+	    	rm -rf "$HOME/.local/share/omf"
 			mkdir -p $HOME/.cache/download
 			cd $HOME/.cache/download
 			rm -rf ./install
