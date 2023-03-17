@@ -292,6 +292,7 @@ _main(){
 
 # 环境准备
 [ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+[ -z "$(command -v git)" ] && _command "pkg i -y" "git"
 [ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
 [ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
 if [ -z "$(dpkg -l | grep termux-api)" ];then

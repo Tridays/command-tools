@@ -98,8 +98,7 @@ _fish(){
 		[ ${#tmp[@]} -lt 10 ] && _msg E "未查询到主题，请重试！" && _enter && return 0
 
         _dialog "首页→终端美化→fish→主题" "请选择" $OPTIONS
-        n=$(($op-1))
-		v=${tmp[$n]}
+		v=${tmp[$(($op-1))]}
 		OPTIONS=(
 			"使用$v主题"
 			"移除$v主题")
