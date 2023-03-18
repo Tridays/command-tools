@@ -938,7 +938,7 @@ _wikijs(){
 			EOF
 		)"
 		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
-		 _command "apt purge nodejs-16 -y"
+		 _command "apt purge nodejs-16 -y" 
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
