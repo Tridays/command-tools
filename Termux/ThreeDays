@@ -937,7 +937,7 @@ _wikijs(){
 			\t\t● 16.0.0≤ node <17.0.0  (推荐)
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
+		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" && _command "apt purge nodejs-16 -y" || return 0
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
@@ -948,7 +948,9 @@ _wikijs(){
 		_command "-release" "wget -c" "$WIKIJS_RELEASE"
 		tar -zxvf wiki-js.tar.gz
 		rm -rf wiki-js.tar.gz
+		
 		# install nodejs-16
+		_command "pkg i -y" "openssl-1.1 c-ares libicu"
 		cd $PREFIX/opt/
 		rm -rf nodejs-16*
 		_command "-raw" "wget -c" "$NODEJS16_RAW"
