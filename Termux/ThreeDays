@@ -975,6 +975,7 @@ _wikijs(){
 				3>&1 1>&2 2>&3 3>&-)
 				
 				clear
+				mysql -uroot -p${password} -e "drop database if exists wiki;"
 				mysql -uroot -p${password} -e "create database if not exists wiki;show databases;"
 				if [ "$?" == "0" ];then
 					mysql -uroot -p${password} -e "CREATE USER  if not exists 'wikijs'@'localhost' IDENTIFIED BY '${password}';"
@@ -1011,6 +1012,7 @@ _wikijs(){
 			# exec
 			cat<<-EOF>${path}/run
 			#!/data/data/com.termux/files/usr/bin/bash
+			sleep 10
 			cd "$PREFIX/opt/wiki"
 			exec $PREFIX/opt/nodejs-16/bin/node server
 			EOF
