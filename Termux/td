@@ -159,6 +159,8 @@ _command(){
 	elif [ "$1" == "-raw" ];then
 		status=3
 		shift 1
+	else
+		status=0
 	fi
 	# args：$1 $2 $3
 	case $# in
