@@ -950,7 +950,7 @@ _wikijs(){
 		rm -rf wiki-js.tar.gz
 		
 		# install nodejs-16
-		_command "pkg i -y" "openssl-1.1 c-ares libicu"
+		_command "pkg i" "openssl-1.1 c-ares libicu" "-y"
 		cd $PREFIX/opt/
 		rm -rf nodejs-16*
 		_command "-raw" "wget -c" "$NODEJS16_RAW"
