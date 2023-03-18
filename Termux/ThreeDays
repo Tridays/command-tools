@@ -937,7 +937,8 @@ _wikijs(){
 			\t\t● 16.0.0≤ node <17.0.0  (推荐)
 			EOF
 		)"
-		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" && _command "apt purge nodejs-16 -y" || return 0
+		_checkInstall "$PREFIX/opt/wiki" && rm -rf "$PREFIX/var/service/wiki" || return 0
+		 _command "apt purge nodejs-16 -y"
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
