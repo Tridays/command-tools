@@ -40,13 +40,13 @@ _termux_destop(){
 		_command "pkg i -y" "xfce4  xfce4-goodies kvantum audacious mousepad pavucontrol-qt geany synaptic firefox kitty"
 		
 		_command "-raw" "wget -c " "$BREEZE_CURSOR_THEME_RAW"
-		_command "apt install ./breeze-cursor-theme.deb"
+		_command "apt install ./breeze-cursor-theme.deb -y"
 		
 		_command "-raw" "wget -c " "$TERMUX_DESTOP_XFCE_RAW"
-		_command "apt install ./termux-desktop-xfce_5.0.3_all.deb"
+		_command "apt install ./termux-desktop-xfce_5.0.3_all.deb -y"
 		
 		_command "-raw" "wget -c " "$TTF_MICROSOFT_CASCADIA_RAW"
-		_command "apt install ./ttf-microsoft-cascadia_4.0.2_all.deb"
+		_command "apt install ./ttf-microsoft-cascadia_4.0.2_all.deb -y"
 		
 		cat <<-EOF > $HOME/Desktop/firefox.desktop
 		[Desktop Entry]

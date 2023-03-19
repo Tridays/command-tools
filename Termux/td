@@ -22,9 +22,11 @@ fi
 THREEDAYS_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/ThreeDays"
 GUI_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/GUI"
 TERMUX_AARCH64_TD_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/td"
-VERSION_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/version"
+TD_JSON_RAW="https://raw.gitfast.tk/Tridays/command-tools/main/Termux/td.json"
+
 ThreeDays="$HOME/.config/td/ThreeDays"
 GUI="$HOME/.config/td/GUI"
+TD_JSON="$HOME/.config/td/td.json"
 TERMUX_X11_RAW="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/termux-x11/termux-x11.deb"
 
 # github speed up
@@ -32,10 +34,69 @@ CLONE_SPEED_UP_LINK=("https://gitclone.com/" "https://ghproxy.com/" )
 RELEASE_SPEED_UP_LINK=("https://kgithub.com/" "https://ghproxy.com/")
 RAW_SPEED_UP_LINK=("raw.fastgit.org" "raw.gitfast.tk") # "raw.fastgit.org" https://ghproxy.com/
 
+
+# some function
+_enter() { echo -en "\n${GREEN}Press Enter to continue${WHITE}";read op ;:;}
+# 自定义通告颜色 
+_msg() {
+	# I：消息
+	# W：警告
+	# E：错误
+	case $1 in
+	I)
+		echo -e "\n${GREEN}I：$2${WHITE}"
+		;;
+	W)
+		echo -e "\n${YELLOW}W：$2${WHITE}"
+		;;
+	E)
+		echo -e "\n${RED}E：$2${WHITE}"
+		;;
+	esac 
+}
+
+# Git代理
+_node _git_proxy(){
+	_on(){
+		[ ! -e "$HOME/.config/td/td.json" ] && _msg E "配置文件不存在，请更新脚本！" && _enter && return 0
+		cat $HOME/.config/td/td.json | jq -r '.github_mirror_speed_up=true' > $HOME/.cache/td/td.json
+		cp -r $HOME/.cache/td/td.json $HOME/.config/td/td.json
+	}
+	_off(){
+		[ ! -e "$HOME/.config/td/td.json" ] && _msg E "配置文件不存在，请更新脚本！" && _enter && return 0
+		cat $HOME/.config/td/td.json | jq -r '.github_mirror_speed_up=false' > $HOME/.cache/td/td.json
+		cp -r $HOME/.cache/td/td.json $HOME/.config/td/td.json
+	}
+	OPTIONS=(
+         "开启代理"
+         "关闭代理"
+         "<<返回上级目录>>")
+    
+    _dialog "首页→Git代理" "请选择" $OPTIONS
+    case $op in 
+    	1)
+			_node _on
+			
+			;;
+    	2)
+			_node  _off
+			;;
+    	*)
+			return 0
+			;;
+	esac
+}
+
 #  Github国内镜像网站
 _github_mirror_speed_up(){
 	# args：$1 $2
 	# $((RANDOM%3)) -> [0,3)
+	s=$(jq -r .github_mirror_speed_up $HOME/.config/td/td.json)
+	_msg W "Git代理状态：$s"
+	if [ "$s" == "false" ];then
+		url="$2"
+		return 0
+	fi
 	case $1 in
 	clone)
 		n=${#CLONE_SPEED_UP_LINK[@]}
@@ -69,26 +130,6 @@ _github_mirror_speed_up(){
 		fi
 		;;
 	esac
-}
-
-# some function
-_enter() { echo -en "\n${GREEN}Press Enter to continue${WHITE}";read op ;:;}
-# 自定义通告颜色 
-_msg() {
-	# I：消息
-	# W：警告
-	# E：错误
-	case $1 in
-	I)
-		echo -e "\n${GREEN}I：$2${WHITE}"
-		;;
-	W)
-		echo -e "\n${YELLOW}W：$2${WHITE}"
-		;;
-	E)
-		echo -e "\n${RED}E：$2${WHITE}"
-		;;
-	esac 
 }
 
 # 栈模拟，菜单多级控制
@@ -229,20 +270,15 @@ _update(){
 	[ -z "$(command -v wget)" ] && _command "yes | pkg update" && _command "pkg i -y" "wget"
 	rm -rf $HOME/.cache/download
 	mkdir -p $HOME/.cache/download $HOME/.config/td
-	#rm -rf $PREFIX/bin/td $ThreeDays
 	cd $HOME/.cache/download
 	# fun文件
-	#_command "-raw" "wget -c" "$THREEDAYS_RAW"
-	_command "wget -c" "$THREEDAYS_RAW"
+	_command "-raw" "wget -c" "$THREEDAYS_RAW"
 	# GUI
-	#_command "-raw" "wget -c" "$GUI_RAW"
-	_command "wget -c" "$GUI_RAW"
+	_command "-raw" "wget -c" "$GUI_RAW"
 	# main脚本
-	#_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
-	_command "wget -c" "$TERMUX_AARCH64_TD_RAW"
-	# version
-	#_command "-raw" "wget -c" "$VERSION_RAW"
-	_command "wget -c" "$VERSION_RAW"
+	_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
+	# td.json
+	_command "-raw" "wget -c" "$TD_JSON_RAW"
 	# mv
 	mv -f ThreeDays $HOME/.config/td/ThreeDays
 	mv -f GUI $HOME/.config/td/GUI
@@ -256,7 +292,6 @@ _update(){
 	exit
 }
 
-
 # main
 _main(){
 	OPTIONS=(
@@ -265,6 +300,7 @@ _main(){
          "更新脚本"
          "GUI"
          "其他选项"
+         "Git代理"
          "退出脚本")
     
     _dialog "首页" "使用↑↓选择，也可以用手点击选项再回车哦" $OPTIONS
@@ -284,6 +320,9 @@ _main(){
     	5)
 			_node _otherOP
 			;;
+    	6)
+			_node _git_proxy
+			;;
     	*)
     	    clear
     	    return 0
@@ -296,6 +335,7 @@ _main(){
 
 # 环境准备
 [ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+[ -z "$(command -v jq)" ] && _command "pkg i -y" "jq"
 [ -z "$(command -v git)" ] && _command "pkg i -y" "git"
 [ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
 [ -z "$(dpkg -l | grep termux-gui-package)" ] && _command "pkg i -y" "termux-gui-package"
@@ -312,13 +352,7 @@ if [ -z "$(dpkg -l | grep termux-x11)" ];then
 	rm -rf ./termux-x11.deb
 fi
 [ ! -e "$HOME/storage" ] && _command "termux-setup-storage" 
-if [ ! -e "$ThreeDays" ] || [ "$(cat $ThreeDays | wc -l)" == "0" ];then
-	_update
-fi
-if [ ! -e "$GUI" ] || [ "$(cat $GUI | wc -l)" == "0" ];then
-	_update
-fi
-for x in $ThreeDays $GUI 
+for x in $ThreeDays $GUI $TD_JSON
 do
 	[ ! -e "$x" ] || [ "$(cat $x | wc -l)" == "0" ] && _update
 done
@@ -327,16 +361,16 @@ source $ThreeDays
 source $GUI
 # auto update
 {
-	_github_mirror_speed_up raw $VERSION_RAW
+	_github_mirror_speed_up raw $TD_JSON_RAW
 	mkdir -p $HOME/.cache/td
 	# 获取版本信息
 	for x in $(seq 0 5)
 	do
-		curl -s $url > $HOME/.cache/td/v && status=0 && break
+		curl -s $url > $HOME/.cache/td/td.json && status=0 && break
 	done
 	if [ "$status" == "0" ];then
-		new_version=($(cat $HOME/.cache/td/v | awk -F "." '{print $1,$2,$3}'))
-		old_version=($(cat $HOME/.config/td/version | awk -F "." '{print $1,$2,$3}'))
+		new_version=$(jq -r .version $HOME/.cache/td/td.json)
+		old_version=$(jq -r .version $HOME/.config/td/td.json)
 		for x in $(seq 0 2)
 		do
 			[ ${new_version[$x]} -gt ${old_version[$x]} ] && termux-toast -c red -s "td脚本有更新"
