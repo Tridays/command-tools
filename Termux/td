@@ -292,6 +292,8 @@ _main(){
 }
 
 
+# allow-external-apps = true
+
 # 环境准备
 [ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 [ -z "$(command -v git)" ] && _command "pkg i -y" "git"

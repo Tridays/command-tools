@@ -35,7 +35,7 @@ _termux_destop(){
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
 		_msg W "如果网速过慢，请科学上网"
-		_command "pkg update -y"
+		yes | pkg update
 		_command "pkg i -y" "x11-repo "
 		_command "pkg i -y" "xfce4  xfce4-goodies termux-desktop-xfce breeze-cursor-theme kvantum ttf-microsoft-cascadia audacious mousepad pavucontrol-qt geany synaptic firefox kitty"
 		
