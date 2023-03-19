@@ -37,18 +37,15 @@ _termux_destop(){
 		_msg W "如果网速过慢，请科学上网"
 		yes | pkg update
 		_command "pkg i -y" "x11-repo "
-		_command "pkg i -y" "xfce4  xfce4-goodies termux-desktop-xfce breeze-cursor-theme kvantum ttf-microsoft-cascadia audacious mousepad pavucontrol-qt geany synaptic firefox kitty"
+		_command "pkg i -y" "xfce4  xfce4-goodies kvantum audacious mousepad pavucontrol-qt geany synaptic firefox kitty"
 		
-		_github_mirror_speed_up raw $BREEZE_CURSOR_THEME_RAW
-		_command "wget -c " "$url"
+		_command "-raw" "wget -c " "$BREEZE_CURSOR_THEME_RAW"
 		_command "apt install ./breeze-cursor-theme.deb"
 		
-		_github_mirror_speed_up raw $TERMUX_DESTOP_XFCE_RAW
-		_command "wget -c " "$url"
+		_command "-raw" "wget -c " "$TERMUX_DESTOP_XFCE_RAW"
 		_command "apt install ./termux-desktop-xfce_5.0.3_all.deb"
 		
-		_github_mirror_speed_up raw $TTF_MICROSOFT_CASCADIA_RAW
-		_command "wget -c " "$url"
+		_command "-raw" "wget -c " "$TTF_MICROSOFT_CASCADIA_RAW"
 		_command "apt install ./ttf-microsoft-cascadia_4.0.2_all.deb"
 		
 		cat <<-EOF > $HOME/Desktop/firefox.desktop
