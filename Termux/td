@@ -92,7 +92,7 @@ _github_mirror_speed_up(){
 	# args：$1 $2
 	# $((RANDOM%3)) -> [0,3)
 	s=$(jq -r .github_mirror_speed_up $HOME/.config/td/td.json)
-	_msg W "Git代理状态：$s"
+	_msg W "Git国内代理状态：$s"
 	if [ "$s" == "false" ];then
 		url="$2"
 		return 0
