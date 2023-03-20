@@ -56,7 +56,7 @@ _msg() {
 }
 
 # Git代理
-_node _git_proxy(){
+_git_proxy(){
 	_on(){
 		[ ! -e "$HOME/.config/td/td.json" ] && _msg E "配置文件不存在，请更新脚本！" && _enter && return 0
 		cat $HOME/.config/td/td.json | jq -r '.github_mirror_speed_up=true' > $HOME/.cache/td/td.json
@@ -282,8 +282,9 @@ _update(){
 	# mv
 	mv -f ThreeDays $HOME/.config/td/ThreeDays
 	mv -f GUI $HOME/.config/td/GUI
-	mv -f version $HOME/.config/td/version
+	mv -f td.json $HOME/.config/td/td.json
 	mv -f td $PREFIX/bin/td
+	
 	rm -rf $HOME/.cache/download
 	chmod 775 $PREFIX/bin/td
 	echo -e "\n${GREEN}[$(date +"%Y年%m月%d日-%H时%M分%S秒")]更新成功！${WHITE}"
@@ -335,6 +336,7 @@ _main(){
 
 # 环境准备
 [ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
+[ -z "$(command -v ssh-keygen )" ] && _command "pkg i -y" "openssh"
 [ -z "$(command -v jq)" ] && _command "pkg i -y" "jq"
 [ -z "$(command -v git)" ] && _command "pkg i -y" "git"
 [ -z "$(dpkg -l | grep termux-services)" ] && _command "pkg i -y" "termux-services"
@@ -361,7 +363,11 @@ source $ThreeDays
 source $GUI
 # auto update
 {
-	_github_mirror_speed_up raw $TD_JSON_RAW
+	if [ ! -e "$HOME/.config/td/td.json" ];then
+		termux-toast -c red -s "配置文件缺少请更新脚本！"
+		exit
+	fi
+	_github_mirror_speed_up raw $TD_JSON_RAW  >/dev/null 2>&1
 	mkdir -p $HOME/.cache/td
 	# 获取版本信息
 	for x in $(seq 0 5)
@@ -369,8 +375,8 @@ source $GUI
 		curl -s $url > $HOME/.cache/td/td.json && status=0 && break
 	done
 	if [ "$status" == "0" ];then
-		new_version=$(jq -r .version $HOME/.cache/td/td.json)
-		old_version=$(jq -r .version $HOME/.config/td/td.json)
+		new_version=($(jq -r .version $HOME/.cache/td/td.json | awk -F "." '{print $1,$2,$3}'))
+		old_version=($(jq -r .version $HOME/.config/td/td.json | awk -F "." '{print $1,$2,$3}'))
 		for x in $(seq 0 2)
 		do
 			[ ${new_version[$x]} -gt ${old_version[$x]} ] && termux-toast -c red -s "td脚本有更新"
@@ -379,3 +385,5 @@ source $GUI
 }&
 # main
 _node _main
+
+# ssh-keygen -t rsa -b 4096
