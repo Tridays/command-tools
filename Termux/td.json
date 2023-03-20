@@ -1,5 +1,5 @@
 {
   "name": "ThreeDays",
-  "github_mirror_speed_up": false,
+  "github_mirror_speed_up": true,
   "version": "0.1.5"
 }
