@@ -49,6 +49,7 @@ _termux_destop(){
 		_command "apt install ./ttf-microsoft-cascadia_4.0.2_all.deb -y"
 		rm -rf breeze-cursor-theme.deb termux-desktop-xfce_5.0.3_all.deb ttf-microsoft-cascadia_4.0.2_all.deb
 		
+		mkdir -p $HOME/Desktop
 		cat <<-EOF > $HOME/Desktop/firefox.desktop
 		[Desktop Entry]
 		Name=firefox
