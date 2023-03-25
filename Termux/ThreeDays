@@ -1938,7 +1938,7 @@ _chatgpt_on_wechat(){
 		_command "pip3 install --upgrade" "openai"
 		loginpy="$(pip3 show itchat-uos | grep Location | awk '{print $2}')/itchat/components/login.py"
 		row=$(cat $loginpy | grep -n 'isLoggedIn = False' | awk -F ":" '{print $1}')
-		if [ -z "$(sed -n "$(($row+1))" $loginpy | grep time)" ];then
+		if [ -z "$(sed -n "$(($row+1))"p $loginpy | grep time)" ];then
 			sed -i "$row{s/$/\n        time.sleep(30)/}" $loginpy
 		fi
 		
