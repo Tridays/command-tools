@@ -1956,10 +1956,20 @@ _chatgpt_on_wechat(){
 		_enter
 		rm -rf $PREFIX/opt/chatgpt-on-wechat/nohup.out
 		cd $PREFIX/opt/chatgpt-on-wechat
+		
+		
 		out=$HOME/.cache/chatgpt
 		mkdir -p $out
 		out=$out/nohup.out
-		nohup python3 $PREFIX/opt/chatgpt-on-wechat/app.py > $out &
+
+		
+		cat <<-EOF> $PREFIX/opt/chatgpt-on-wechat/run.sh
+			cd $PREFIX/opt/chatgpt-on-wechat
+			echo "\$\$" > $out
+			python3 $PREFIX/opt/chatgpt-on-wechat/app.py
+		EOF
+		nohup bash $PREFIX/opt/chatgpt-on-wechat/run.sh > $out  &
+		
 		sleep 3
 		while :
 		do
