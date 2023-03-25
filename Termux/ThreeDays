@@ -1954,13 +1954,16 @@ _chatgpt_on_wechat(){
 		cat $PREFIX/opt/chatgpt-on-wechat/config.json
 		_enter
 		rm -rf $PREFIX/opt/chatgpt-on-wechat/nohup.out
-		nohup python3 $PREFIX/opt/chatgpt-on-wechat/app.py &
+		out=$HOME/.cache/chatgpt
+		mkdir -p $out
+		out=$out/nohup.out
+		nohup python3 $PREFIX/opt/chatgpt-on-wechat/app.py > $out &
 		sleep 3
 		while :
 		do
-			cat $PREFIX/opt/chatgpt-on-wechat/nohup.out
+			cat $out
 			echo -e "${RED}5s 刷新一次控制台日志${WHITE}"
-			echo -e "${RED}日志文件目录：$PREFIX/opt/chatgpt-on-wechat/nohup.out${WHITE}"
+			echo -e "${RED}日志文件目录：$out${WHITE}"
 			echo -e "${RED}可以 Ctrl + c 结束脚本，但不影响ChatGPT运行${WHITE}"
 			for x in $(seq 1 5)
 			do
