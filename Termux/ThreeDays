@@ -1960,12 +1960,12 @@ _chatgpt_on_wechat(){
 		
 		out=$HOME/.cache/chatgpt
 		mkdir -p $out
+		PID=$out/pid
 		out=$out/nohup.out
-
 		
 		cat <<-EOF> $PREFIX/opt/chatgpt-on-wechat/run.sh
 			cd $PREFIX/opt/chatgpt-on-wechat
-			echo "\$\$" > $out
+			echo "\$\$" > $PID
 			python3 $PREFIX/opt/chatgpt-on-wechat/app.py
 		EOF
 		nohup bash $PREFIX/opt/chatgpt-on-wechat/run.sh > $out  &
@@ -1974,7 +1974,7 @@ _chatgpt_on_wechat(){
 		while :
 		do
 			cat $out
-			echo -e "${RED}5s 刷新一次控制台日志${WHITE}"
+			echo -e "${RED}5s 刷新一次控制台日志 PID：$(cat $PID)${WHITE}"
 			echo -e "${RED}日志文件目录：$out${WHITE}"
 			echo -e "${RED}可以 Ctrl + c 结束脚本，但不影响ChatGPT运行${WHITE}"
 			for x in $(seq 1 5)
