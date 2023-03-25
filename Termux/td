@@ -348,7 +348,7 @@ if [ -z "$(dpkg -l | grep termux-api)" ];then
 fi
 if [ -z "$(dpkg -l | grep termux-x11)" ];then
 	_command "pkg i -y" "x11-repo"
-	_command "pkg i -y" "xwayland"
+	# _command "pkg i -y" "xwayland"
 	_command "-raw" "wget -c" "$TERMUX_X11_RAW"
 	_command "apt install " "./termux-x11.deb"
 	rm -rf ./termux-x11.deb
