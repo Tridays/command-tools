@@ -1954,6 +1954,7 @@ _chatgpt_on_wechat(){
 		cat $PREFIX/opt/chatgpt-on-wechat/config.json
 		_enter
 		rm -rf $PREFIX/opt/chatgpt-on-wechat/nohup.out
+		cd $PREFIX/opt/chatgpt-on-wechat
 		out=$HOME/.cache/chatgpt
 		mkdir -p $out
 		out=$out/nohup.out
