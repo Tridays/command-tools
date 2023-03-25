@@ -1952,6 +1952,7 @@ _chatgpt_on_wechat(){
 		echo -e "${YELLOW}你的配置文件信息如下：${WHITE}"
 		echo -e "${YELLOW}配置文件路径：$PREFIX/opt/chatgpt-on-wechat/config.json${WHITE}"
 		cat $PREFIX/opt/chatgpt-on-wechat/config.json
+		
 		_enter
 		rm -rf $PREFIX/opt/chatgpt-on-wechat/nohup.out
 		cd $PREFIX/opt/chatgpt-on-wechat
