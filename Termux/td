@@ -278,6 +278,10 @@ _update(){
 	_command "-raw" "wget -c" "$TERMUX_AARCH64_TD_RAW"
 	# td.json
 	_command "-raw" "wget -c" "$TD_JSON_RAW"
+	# 用户设置备份
+	github_mirror_speed_up=$(jq -r .github_mirror_speed_up $HOME/.config/td/td.json)
+	jq -r ".github_mirror_speed_up=$github_mirror_speed_up" ./td.json
+	
 	# mv
 	mv -f ThreeDays $HOME/.config/td/ThreeDays
 	mv -f GUI $HOME/.config/td/GUI
