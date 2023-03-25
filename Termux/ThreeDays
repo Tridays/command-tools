@@ -1933,8 +1933,15 @@ _chatgpt_on_wechat(){
 		  "character_desc": "你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。"
 		}
 		EOF
+		_command "pip3 uninstall" "itchat-uos" "-y"
 		_command "pip3 install" "itchat-uos==1.5.0.dev0"
 		_command "pip3 install --upgrade" "openai"
+		loginpy="$(pip3 show itchat-uos | grep Location | awk '{print $2}')/itchat/components/login.py"
+		row=$(cat $loginpy | grep -n 'isLoggedIn = False' | awk -F ":" '{print $1}')
+		if [ -z "$(sed -n "$(($row+1))" $loginpy | grep time)" ];then
+			sed -i "$row{s/$/\n        time.sleep(30)/}" $loginpy
+		fi
+		
 		echo -e "${YELLOW}拉取成功！${WHITE}"
 		_enter
 	}
@@ -1942,13 +1949,12 @@ _chatgpt_on_wechat(){
 		[ ! -e "$PREFIX/opt/chatgpt-on-wechat" ] && _msg E "请先拉取项目！" && _enter && return 0
 		p=$(ps -ef | grep "python3 app.py" | grep -v grep | awk '{print $2}')
 		kill -9 $p >/dev/null 2>&1
-		cd $PREFIX/opt/chatgpt-on-wechat
 		echo -e "${YELLOW}你的配置文件信息如下：${WHITE}"
 		echo -e "${YELLOW}配置文件路径：$PREFIX/opt/chatgpt-on-wechat/config.json${WHITE}"
 		cat $PREFIX/opt/chatgpt-on-wechat/config.json
 		_enter
 		rm -rf $PREFIX/opt/chatgpt-on-wechat/nohup.out
-		nohup python3 app.py &
+		nohup python3 $PREFIX/opt/chatgpt-on-wechat/app.py &
 		sleep 3
 		while :
 		do
@@ -1964,9 +1970,16 @@ _chatgpt_on_wechat(){
 		done
 		_enter
 	}
+	_stop(){
+		[ ! -e "$PREFIX/opt/chatgpt-on-wechat" ] && _msg E "请先拉取项目！" && _enter && return 0
+		p=$(ps -ef | grep "python3 $PREFIX/opt/chatgpt-on-wechat/app.py" | grep -v grep | awk '{print $2}')
+		_command "kill -9 $p "
+		_enter
+	}
     OPTIONS=(
          "安装｜卸载chatgpt-on-wechat"
          "启动"
+         "停止"
          "<<返回上级目录>>")
    _dialog "首页→其他选项→chatgpt-on-wechat" "请选择" $OPTIONS
     case $op in
@@ -1975,6 +1988,9 @@ _chatgpt_on_wechat(){
    			;;
 		2)
 			_node _run
+			;;
+		3)
+			_node _stop
 			;;
 		*)
 			return 0
