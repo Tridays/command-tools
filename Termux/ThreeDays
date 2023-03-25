@@ -1911,8 +1911,8 @@ _chatgpt_on_wechat(){
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		cd $PREFIX/opt
 		_command "git clone --depth 1" " https://github.com/zhayujie/chatgpt-on-wechat"
-		cd $PREFIX/opt/chatgpt-on-wechat
 		cat <<-EOF> $PREFIX/opt/chatgpt-on-wechat/config.json
 		{
 		  "open_ai_api_key": "ChatGPT api",
