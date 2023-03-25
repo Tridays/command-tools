@@ -75,11 +75,10 @@ _git_proxy(){
     _dialog "首页→Git代理" "请选择" $OPTIONS
     case $op in 
     	1)
-			_node _on
-			
+			_on
 			;;
     	2)
-			_node  _off
+			_off
 			;;
     	*)
 			return 0
