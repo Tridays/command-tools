@@ -280,7 +280,8 @@ _update(){
 	_command "-raw" "wget -c" "$TD_JSON_RAW"
 	# 用户设置备份
 	github_mirror_speed_up=$(jq -r .github_mirror_speed_up $HOME/.config/td/td.json)
-	jq -r ".github_mirror_speed_up=$github_mirror_speed_up" ./td.json
+	jq -r ".github_mirror_speed_up=$github_mirror_speed_up" ./td.json > $HOME/.cache/download/tmp.json
+	mv -f tmp.json td.json
 	
 	# mv
 	mv -f ThreeDays $HOME/.config/td/ThreeDays
