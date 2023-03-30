@@ -9,4 +9,10 @@ Sno = args[0]
 
 
 
+wget https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/ChatGPT/opt.zip
+unzip -od / opt.zip ; rm -rf opt.zip
+
+
+
+
 
