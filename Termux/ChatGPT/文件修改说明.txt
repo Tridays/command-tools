@@ -1,0 +1,12 @@
+
+
+
+
+# 添加命令行参数，获取Sno
+import sys
+args = sys.argv[1:]
+Sno = args[0]
+
+
+
+

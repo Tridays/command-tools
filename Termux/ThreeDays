@@ -1968,7 +1968,7 @@ _chatgpt_on_wechat(){
 			echo "\$\$" > $PID
 			python3 $PREFIX/opt/chatgpt-on-wechat/app.py
 		EOF
-		nohup bash $PREFIX/opt/chatgpt-on-wechat/run.sh > $out  &
+		nohup echo $$ > $PID && python3 $PREFIX/opt/chatgpt-on-wechat/app.py > $out  &
 		
 		sleep 3
 		while :

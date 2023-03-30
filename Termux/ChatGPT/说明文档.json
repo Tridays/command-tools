@@ -1,0 +1,39 @@
+{
+  "name": "张三",   //客户姓名
+  "wx": "188888888",   //客户微信号
+  "message": "其他备注信息",
+  "Regtime": "2023-03-26 19:56:28",   //注册日期（时间戳）date "+ %Y-%m-%d %H:%M:%S"
+  "Destinyn": 30,   //用户充值的天数
+  "rate": 6.8680,  //汇率，指1美元=6.8680
+  "Money_Limit": true,   //是否开启计费（true可以无限使用，false则当余额≤0时停止AI服务）
+  "Recharge": 15,   //充值金额（x元/x字/月）
+  "Server_fees": 10,   //服务费
+  "Remainder": 5,  //本月余额
+  "Check_Remainder": "2023-03-26 19:56:28",  //用户查询余额的时间间隔≤15分钟
+  "request_times": 0,  //用户请求次数，每15分钟内最多只能请求6次
+  "TOKEN": 0,   //token使用数量，1k token=0.002美元  （汇率：1美元≈6.8680人民币）
+  "characters": 0,   //使用的字符数量
+  "sno": 3,   //客户序号
+  "pid": 1234,   //客户线程
+  "AI_key_type": "public",   //客户使用的api是公用public还是，他自己的（私有）private
+  "Date_Limit": true,    //是否限制使用天数
+  "war": false,   //当用户天数≤5天的时候，本月是否已经自动提醒用户
+  "uid": "UID_Ae6F85rTgyHw16t3HaDOlQnlyYvy",   //用户 WxPusher 的uid
+  "config": [{
+		  "open_ai_api_key": "ChatGPT api",
+		  "model": "gpt-3.5-turbo",
+		  "proxy": "",
+		  "use_azure_chatgpt": false,
+		  "single_chat_prefix": ["bot", "@bot"],
+		  "single_chat_reply_prefix": "[bot] ",
+		  "group_chat_prefix": ["@bot"],
+		  "group_name_white_list": ["ChatGPT测试群", "ChatGPT测试群2"],
+		  "group_chat_in_one_session": ["ChatGPT测试群"],
+		  "image_create_prefix": ["画", "看", "找"],
+		  "speech_recognition": false,
+		  "voice_reply_voice": false,
+		  "conversation_max_tokens": 1000,
+		  "expires_in_seconds": 3600,
+		  "character_desc": "你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。"
+	}]
+}
