@@ -2022,7 +2022,7 @@ _ftpd(){
 			cat<<-EOF
 			${GREEN}ftp连接信息：：${WHITE}
 			    ${RED}用户名：${WHITE}   $(whoami)
-			    ${RED}密码：${WHITE}   可以使用passwd命令，修改密码
+			    ${RED}密码：${WHITE}   可以使用passwd命令，修改密码  
 			    ${RED}地址：${WHITE}   0.0.0.0
 			    ${RED}端口：${WHITE}   8021
 			EOF
