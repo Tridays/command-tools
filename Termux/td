@@ -339,6 +339,7 @@ _main(){
 # allow-external-apps = true
 termux-wake-lock
 # 环境准备
+[ -z "$(command -v busybox)" ] && _command "pkg i -y" "busybox"
 [ -z "$(command -v dialog)" ] && _command "pkg i -y" "dialog"
 [ -z "$(command -v ssh-keygen )" ] && _command "pkg i -y" "openssh"
 [ -z "$(command -v jq)" ] && _command "pkg i -y" "jq"

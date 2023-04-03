@@ -2014,7 +2014,43 @@ _chatgpt_on_wechat(){
 	
 }
 
-
+_ftpd(){
+	_run(){
+		_command "sv-enable ftpd"
+        _command "sv up ftpd"
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}ftp连接信息：：${WHITE}
+			    ${RED}用户名：${WHITE}   whoami
+			    ${RED}密码：${WHITE}   可以使用passwd命令，修改密码
+			    ${RED}地址：${WHITE}   0.0.0.0
+			    ${RED}端口：${WHITE}   8021
+			EOF
+		)"
+        _enter
+    }
+    _stop(){
+		_command "sv-disable ftpd"
+        _command "sv down ftpd"
+        _enter
+    }
+    OPTIONS=(
+         "启动ftpd"
+         "停止ftpd"
+         "<<返回上级目录>>")
+   _dialog "首页→其他选项→ftpd" "请选择" $OPTIONS
+    case $op in
+		1)
+			_node _run
+			;;
+		2)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
 
 
 
@@ -2035,6 +2071,7 @@ _otherOP(){
          "数据库"
          "SpeedTest网络测速"
          "chatgpt-on-wechat"
+         "ftpd"
          "<<返回上级目录>>"
          "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
@@ -2082,6 +2119,9 @@ _otherOP(){
     		_node _chatgpt_on_wechat
     		;;    	
     	15)
+    		_node _ftpd
+    		;;    	
+    	16)
     		return 0
     		;;
     	*)
