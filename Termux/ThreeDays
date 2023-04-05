@@ -2052,7 +2052,11 @@ _ftpd(){
 	esac
 }
 
-
+_benchmarking(){
+    echo -e  "${BLUE}[*]${GREEN}bash <(curl -s 'https://raw.githubusercontent.com/masonr/yet-another-bench-script/master/yabs.sh')${WHITE}"
+    bash <(curl -s "https://raw.githubusercontent.com/masonr/yet-another-bench-script/master/yabs.sh")
+    _enter
+}
 
 # main
 _otherOP(){
@@ -2072,6 +2076,7 @@ _otherOP(){
          "SpeedTest网络测速"
          "chatgpt-on-wechat"
          "ftpd"
+         "termux性能跑分"
          "<<返回上级目录>>"
          "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
@@ -2120,8 +2125,11 @@ _otherOP(){
     		;;    	
     	15)
     		_node _ftpd
-    		;;    	
+    		;;
     	16)
+    		_benchmarking
+    		;;    		
+    	17)
     		return 0
     		;;
     	*)
