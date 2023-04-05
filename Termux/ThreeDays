@@ -2076,7 +2076,7 @@ _aria2(){
 		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
 		read op
 		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
-		[ -z "$(command -v aria2)" ] && _command "pkg i -y" "aria2"
+		[ -z "$(command -v aria2c)" ] && _command "pkg i -y" "aria2"
 		[ -z "$(command -v nginx)" ] && _command "pkg i -y" "nginx"
 		# install aria2.conf
 		mkdir -p "$PREFIX/opt/"
@@ -2085,10 +2085,10 @@ _aria2(){
 		cd aria2
 		touch aria2.session
 		# 修改配置
-		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'dir')#dir=$HOME/storage/shared/Download/#g" aria2.conf
-		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'input-file')#dir=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
-		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'save-session')#dir=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
-		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret')#rpc-secret=threedays#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'dir=')#dir=$HOME/storage/shared/Download/#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'input-file=')#input-file=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'save-session=')#save-session=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret=')#rpc-secret=threedays#g" aria2.conf
 
 		# nginx配置
 		file="$PREFIX/etc/nginx/nginx.conf"
@@ -2155,7 +2155,7 @@ _aria2(){
         _enter
 	}
     OPTIONS=(
-         "安装｜卸载aria2 web-GUI"
+         "安装｜卸载aria2-web-GUI"
          "打开aria2控制面板"
          "启动服务"
          "关闭服务"
@@ -2199,6 +2199,7 @@ _otherOP(){
          "chatgpt-on-wechat"
          "ftpd"
          "termux性能跑分"
+         "aria2-web-GUI"
          "<<返回上级目录>>"
          "退出脚本")
     _dialog "首页→其他选项" "请选择" $OPTIONS
@@ -2252,7 +2253,7 @@ _otherOP(){
     		_benchmarking
     		;;
     	17)
-    		_aria2
+    		_node _aria2
     		;;    		
     	18)
     		return 0
