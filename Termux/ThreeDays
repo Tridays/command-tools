@@ -2052,10 +2052,132 @@ _ftpd(){
 	esac
 }
 
+# CPU跑分
 _benchmarking(){
     echo -e  "${BLUE}[*]${GREEN}bash <(curl -s 'https://raw.githubusercontent.com/masonr/yet-another-bench-script/master/yabs.sh')${WHITE}"
     bash <(curl -s "https://raw.githubusercontent.com/masonr/yet-another-bench-script/master/yabs.sh")
     _enter
+}
+
+# aria2
+_aria2(){
+	_i(){
+		clear
+		echo -e "$(
+			cat<<-EOF
+			${GREEN}简介：${WHITE}aria2是一款开源的C++编写的命令行下载器。
+			${GREEN}官网：${WHITE}https://github.com/P3TERX/aria2.conf
+			${RED}环境要求：${WHITE}
+			\t\t●aria2
+			\t\t●nginx
+			EOF
+		)"
+		_checkInstall "$PREFIX/opt/aria2" && rm -rf $PREFIX/etc/nginx/config/aria2.conf || return 0
+		echo -en "${RED}是否继续安装？[Y/N]${WHITE}" ""
+		read op
+		[[ ! "$op" == "y" && ! "$op" == "Y" ]] && return 0
+		[ -z "$(command -v aria2)" ] && _command "pkg i -y" "aria2"
+		[ -z "$(command -v nginx)" ] && _command "pkg i -y" "nginx"
+		# install aria2.conf
+		mkdir -p "$PREFIX/opt/"
+		cd "$PREFIX/opt/"
+		_command "git clone --depth 1" "https://github.com/P3TERX/aria2.conf" "$PREFIX/opt/aria2"
+		cd aria2
+		touch aria2.session
+		# 修改配置
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'dir')#dir=$HOME/storage/shared/Download/#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'input-file')#dir=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'save-session')#dir=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
+		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret')#rpc-secret=threedays#g" aria2.conf
+
+		# nginx配置
+		file="$PREFIX/etc/nginx/nginx.conf"
+		if [ -z "$(cat $file | grep 'include config/\*.conf;')" ];then
+			row=$(cat $file |grep -n } | sed -n 12p | awk -F ":" '{print $1}')
+			sed -i "$(($row-1))i include config/*.conf;" $file
+		fi
+		mkdir -p $PREFIX/etc/nginx/config
+		cat<<-EOF> $PREFIX/etc/nginx/config/aria2.conf
+			server {
+			    listen       2020;
+			    #listen       [::]:80;			ipv6
+			    server_name  localhost;
+			    location / {
+			        root   $PREFIX/opt/aria2;		# 服务1的前端文件存放的地址
+			        index  index.html index.htm;									# 指定默认访问的页面
+			    }
+		    }
+		EOF
+
+		_msg I "aria2安装成功！"
+		_enter
+	}
+	_start(){
+		clear
+		[ ! -e "$PREFIX/opt/aria2" ] && _msg E "请先安装aria2！" && _enter && return 0
+		path="$PREFIX/var/service/aria2"
+		if [ ! -e "${path}" ];then
+			mkdir -p ${path}/log
+			# exec
+			cat<<-EOF>${path}/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			cd "$HOME"
+			exec aria2c --conf-path=$PREFIX/opt/aria2/aria2.conf
+			EOF
+			chmod +x ${path}/run
+			# log
+			cat<<-EOF>${path}/log/run
+			#!/data/data/com.termux/files/usr/bin/bash
+			svlogger="$PREFIX/share/termux-services/svlogger"
+			exec "\${svlogger}" "\$@"
+			EOF
+			chmod +x ${path}/log/run
+		fi
+		_command "sv-enable aria2"
+		_command "sv-enable nginx"
+		_msg W "aria2默认下载路径：$HOME/storage/shared/Download"
+		_enter
+	}
+	_stop(){
+		clear
+		[ ! -e "$PREFIX/opt/aria2" ] && _msg E "请先安装aria2！" && _enter && return 0
+		_command "sv-disable aria2"
+		_command "sv-disable nginx"
+		_enter
+	}
+	_open_settings(){
+		clear
+		[ ! -e "$PREFIX/opt/aria2" ] && _msg E "请先安装aria2！" && _enter && return 0
+		password=$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret' | awk -F "=" '{print $2}')
+		
+		# xdg-open 或 termux-open
+		termux-open http://localhost:8080/#!/settings/rpc/set/ws/127.0.0.1/6800/jsonrpc/$(echo -n "$password" | base64)
+        _enter
+	}
+    OPTIONS=(
+         "安装｜卸载aria2 web-GUI"
+         "打开aria2控制面板"
+         "启动服务"
+         "关闭服务"
+         "<<返回上级目录>>")
+   _dialog "首页→其他选项→aria2" "请选择" $OPTIONS
+    case $op in
+   		1)
+   			_node _i
+   			;;
+		2)
+			_node _open_settings
+			;;
+		3)
+			_node _start
+			;;
+		4)
+			_node _stop
+			;;
+		*)
+			return 0
+			;;
+	esac
 }
 
 # main
@@ -2128,8 +2250,11 @@ _otherOP(){
     		;;
     	16)
     		_benchmarking
-    		;;    		
+    		;;
     	17)
+    		_aria2
+    		;;    		
+    	18)
     		return 0
     		;;
     	*)
