@@ -2066,7 +2066,7 @@ _aria2(){
 		echo -e "$(
 			cat<<-EOF
 			${GREEN}简介：${WHITE}aria2是一款开源的C++编写的命令行下载器。
-			${GREEN}官网：${WHITE}https://github.com/P3TERX/aria2.conf
+			${GREEN}官网：${WHITE}https://github.com/P3TERX/aria2.conf，https://github.com/mayswind/AriaNg/releases/download/1.3.3/AriaNg-1.3.3-AllInOne.zip
 			${RED}环境要求：${WHITE}
 			\t\t●aria2
 			\t\t●nginx
@@ -2089,8 +2089,12 @@ _aria2(){
 		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'input-file=')#input-file=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
 		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'save-session=')#save-session=$PREFIX/opt/aria2/aria2.session#g" aria2.conf
 		sed -i "s#$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret=')#rpc-secret=threedays#g" aria2.conf
-
-		# nginx配置
+        
+        # GUI
+        _command "wget -c" "https://github.com/mayswind/AriaNg/releases/download/1.3.3/AriaNg-1.3.3-AllInOne.zip" "-O ariagui.zip"
+        unzip -o ariagui.zip
+        
+		# nginx配置 
 		file="$PREFIX/etc/nginx/nginx.conf"
 		if [ -z "$(cat $file | grep 'include config/\*.conf;')" ];then
 			row=$(cat $file |grep -n } | sed -n 12p | awk -F ":" '{print $1}')
