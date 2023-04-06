@@ -2151,7 +2151,7 @@ _aria2(){
 		password=$(cat $PREFIX/opt/aria2/aria2.conf | grep 'rpc-secret' | awk -F "=" '{print $2}')
 		
 		# xdg-open 或 termux-open
-		termux-open http://localhost:8080/#!/settings/rpc/set/ws/127.0.0.1/6800/jsonrpc/$(echo -n "$password" | base64)
+		termux-open http://localhost:2020/#!/settings/rpc/set/ws/127.0.0.1/6800/jsonrpc/$(echo -n "$password" | base64)
         _enter
 	}
     OPTIONS=(
