@@ -1,0 +1,19 @@
+
+
+
+
+# Apline 3.17
+apk add alpine-sdk bash libstdc++ libc6-compat
+echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" > /etc/apk/repositories
+apk update
+apk add python3 nodejs
+echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" > /etc/apk/repositories
+apk update
+apk add npm
+npm config set python python3
+npm install --global code-server --unsafe-perm
+npm install -g 'spdlog' 'yauzl' 'minimist' 'yazl' '@microsoft/1ds-core-js'
+cat ~/.config/code-server/config.yaml
+code-server
+
+
