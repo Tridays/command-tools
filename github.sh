@@ -49,7 +49,6 @@ msg $green 'git status'
 git status
 
 
-
 msg $green 'git commit -m "使用git提交 gitee" '
 git commit -m 'git up' 
 #git config --global user.name "djyd"
