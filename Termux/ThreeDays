@@ -867,7 +867,6 @@ _nvimIDE(){
 	}
 	_ud(){
 		[ ! -e "$HOME/.config/nvim" ] && _msg W "请先安装nvim IDE！" && return 0
-
 		[ -z "$(command -v wget)" ] && _command "pkg i -y" "wget"
 		_msg W "注意！此操作会备份原配置，然后换上新配置配置！"
 		_msg W "并且请确保你的网络能够访问到 http://github.com ！"
