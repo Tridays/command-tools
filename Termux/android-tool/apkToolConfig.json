@@ -1,0 +1,65 @@
+{
+	"root": false,
+	"wordPathRoot": "${HOME}/.apktool",
+	"sdk": {
+		"sdk_root": "${HOME}/sdk",
+		"downloadUrl": "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip",
+		"channel": "0"
+	},
+	"jdk": {
+		"jdk8_downloadUrl": "",
+		"jdk11_downloadUrl": ""
+	},
+	"androidProject": [
+		{
+			"projectName": "Android项目1，学习软件",
+			"projectPath": "${HOME}/App",
+			"namespace": "com.example.app",
+			"signeType": "V1+V2+V3",
+			"AAPT2": "${PREFIX}/bin/aapt2",
+			"jdk": "17",
+			"cmd": "gradle build",
+			"keyName": "release-key.keystore",
+			"password": "123456",
+			"Name": "xiaoming",
+			"OrganizationalUnit": "td",
+			"Organizational": "td",
+			"City": "td",
+			"State": "td",
+			"CountryCode": "86"
+		},
+		{
+			"projectName": "Android项目2，购物APP",
+			"projectPath": "${HOME}/MyApplication",
+			"namespace": "com.example.myapplication",
+			"signeType": "V2",
+			"AAPT2": "${PREFIX}/bin/aapt2",
+			"jdk": "11",
+			"cmd": "./gradlew build",
+			"keyName": "release-key.keystore",
+			"password": "acq369258",
+			"Name": "test",
+			"OrganizationalUnit": "test",
+			"Organizational": "test",
+			"City": "test",
+			"State": "test",
+			"CountryCode": "99"
+		},
+		{
+			"projectName": "Android项目3，贪吃蛇游戏",
+			"projectPath": "${HOME}/MyApplication",
+			"namespace": "com.example.myapplication",
+			"signeType": "",
+			"AAPT2": "${PREFIX}/bin/aapt2",
+			"jdk": "11",
+			"keyName": "release-key.keystore",
+			"password": "acq369258",
+			"Name": "test",
+			"OrganizationalUnit": "test",
+			"Organizational": "test",
+			"City": "test",
+			"State": "test",
+			"CountryCode": "99"
+		}
+	]
+}
