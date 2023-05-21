@@ -19,17 +19,6 @@ else
 	WHITE=""
 fi
 
-
-# some constant var
-THREEDAYS="https://gitee.com/djyd/linux-tools/raw/master/Termux/ThreeDays"
-CONFIG="$HOME/.config/td/ThreeDays"
-
-
-
-
-
-
-
 # some function
 _enter() { echo -en "\n${GREEN}Press Enter to continue${WHITE}";read op ;:;}
 # 自定义通告颜色 
@@ -91,7 +80,6 @@ _checkInstall(){
 					_enter;_enter
 					 rm -rf $Path
 	    				_msg W "移除完成！"
-	    				_enter
 	    				return 0
 					;;
 				*)
@@ -283,7 +271,7 @@ _signe(){
 	
 	echo -e "\n\t${YELLOW}Signe APK Begin！${WHITE}"
 	echo -e "\n${GREEN}[projectName]${WHITE}：${projectName}"
-	if [ ! -e "${projectPath}" ];then
+	if [ ! -d "${projectPath}" ];then
 		echo -e "${RED}[E]${WHITE}：项目路径不存在 OR 配置不正确？\n${RED}Exit ！"
 		exit
 	fi
@@ -358,12 +346,13 @@ _auto(){
 	# 项目信息
 	projectName=$(echo ${data} | jq -r ".projectName")
 	projectPath=$(eval echo "$(echo ${data} | jq -r ".projectPath")")   # Android项目路径
-	cmd=$(eval echo "$(echo ${data} | jq -r ".cmd")")   # 构建命令
+	#cmd=$(eval echo "$(echo ${data} | jq -r ".cmd")")   # 构建命令
+	cmd="$(echo ${data} | jq -r ".cmd")"   # 构建命令
 
 	
 	echo -e "\n\t${YELLOW}Auto Build Begin！${WHITE}"
 	echo -e "\n${GREEN}[projectName]${WHITE}：${projectName}"
-	if [ ! -e "${projectPath}" ];then
+	if [ ! -d "${projectPath}" ];then
 		echo -e "${RED}[E]${WHITE}：项目路径不存在 OR 配置不正确？\n${RED}Exit ！"
 		exit
 	fi
@@ -374,24 +363,39 @@ _auto(){
 	_autoBuild(){
 		case ${jdk} in
 			8)
-				export JAVA_HOME="/data/data/com.termux/files/home/openjdk-11.0.12"
-				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=/data/data/com.termux/files/home/openjdk-11.0.12/"
+				echo -e "\n${RED}[E]：${WHITE} 使用JDK8构建似乎存在bug，目前请优先使用 jdk11 OR jdk17！${RED}EXIT！"
+				exit
+				export JAVA_HOME="${HOME}/jdk/jdk8"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=${JAVA_HOME}"
 				echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}${cmd}${WHITE}"
-				${cmd}
+				eval ${cmd}
 				return $?
 				;;
 			11)
-				export JAVA_HOME="/data/data/com.termux/files/home/openjdk-11.0.12"
-				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=/data/data/com.termux/files/home/openjdk-11.0.12/"
+				export JAVA_HOME="${HOME}/jdk/jdk11"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK11不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=${JAVA_HOME}"
 				echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}${cmd}${WHITE}"
-				${cmd}
+				eval ${cmd}
 				return $?
 				;;
 			17)
 				export JAVA_HOME="${PREFIX}/opt/openjdk"
-				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=${PREFIX}/opt/openjdk"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK17不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=${JAVA_HOME}"
 				echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}${cmd}${WHITE}"
-				${cmd}
+				eval ${cmd}
+				
 				return $?
 				;;
 			*)
@@ -404,14 +408,20 @@ _auto(){
 	do
 		case ${x} in
 			1)
-				echo -e "\n\t${YELLOW}The First Automatic Build！${WHITE}"	
+				echo -e "\n\t${YELLOW}The First Automatic Build！${WHITE}"
 				;;
 			2)
 				echo -e "\n\t${YELLOW}The Second Automatic Build！${WHITE}"	
+				_changeAAPT2 ${projectNum}
+				cd ${projectPath}
 				;;
 		esac
 		_autoBuild
-		if [[ ! $? -eq 0 && ${x} -eq 2 ]];then
+		s=$?
+		if [[ ${s} -eq 0 && ${x} -eq 1 ]];then
+			break
+		fi
+		if [[ ! ${s} -eq 0 && ${x} -eq 2 ]];then
 			echo -e "\n${RED}[Note]${WHITE}：自动构建失败，请检查日志！${RED}EXIT ！"
 			exit
 		fi
@@ -425,62 +435,457 @@ _auto(){
 
 
 _install(){
-_sdk(){
-	echo
-}
-case "$@" in
-	"sdk")
-		echo
+	_sdkmanager(){
+		url=$(echo ${json} | jq -r ".sdk.downloadUrl")
+		using_jdk=$(echo ${json} | jq -r ".sdk.using_jdk")
+		sdk_root=$(eval echo "$(echo ${json} | jq -r ".sdk.sdk_root")")
+		name=$(echo $url | awk -F "/" '{print $NF}' | sed "s#.zip##g")
+		_checkInstall ${sdk_root}/cmdline-tools
+		[ ! "$?" == "0" ] && exit
+		mkdir -p ${sdk_root}
+		cd ${sdk_root}
+		_command "wget -c" "${url}"
+		unzip -o ${name}.zip
+		rm -rf ${name}.zip
+		echo -e "\n${BLUE}[Current SDK info]${WHITE}："
+		case $using_jdk in
+			#8)
+			#	export JAVA_HOME="${HOME}/jdk/jdk8"
+			#	if [ ! -d "${JAVA_HOME}" ];then
+			#		echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+			#		exit
+			#	fi
+			#	${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --list
+			#	;;
+			11)
+				export JAVA_HOME="${HOME}/jdk/jdk11"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			17)
+				export JAVA_HOME="${PREFIX}/opt/openjdk"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			*)
+				echo -e "\njdk版本仅限： --> ${GREEN}11 OR 17${WHITE}\n${RED}请改正配置文件的jdk版本 EXIT！${WHITE}"
+				exit
+				;;
+		esac
+		${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --list
+	}
+	_jdk8(){
+		path=${HOME}/jdk
+		mkdir -p ${path}
+		cd ${path}
+		_checkInstall ${path}/jdk8
+		[ ! "$?" == "0" ] && exit
+		echo -e "\n\t${YELLOW}Download JDK8！${WHITE}"
+		echo -e "\n${GREEN}[Note]${WHITE}：jdk8 will be installed in ${HOME}/jdk"
+		url=$(echo ${json} | jq -r ".jdk.jdk8_downloadUrl")
+		name=$(echo $url | awk -F "/" '{print $NF}' | sed "s#.zip##g")
+		_command "wget -c" "${url}"
+		unzip -o ${name}.zip
+		mv ${name} jdk8
+		rm -rf ${name}.zip
+		cd jdk8
+		cp -rf dex ${PREFIX}/share
+		cp -rf java ${PREFIX}/share
+		chmod +x bin/*
+		echo -e "\n${BLUE}[Current JDK8 info]${WHITE}："
+		${path}/jdk8/bin/java -version
+	}
+	_jdk11(){
+		path=${HOME}/jdk
+		mkdir -p ${path}
+		cd ${path}
+		_checkInstall ${path}/jdk11
+		[ ! "$?" == "0" ] && exit
+		echo -e "\n\t${YELLOW}Download JDK11！${WHITE}"
+		echo -e "\n${GREEN}[Note]${WHITE}：jdk11 will be installed in ${HOME}/jdk"
+		url=$(echo ${json} | jq -r ".jdk.jdk11_downloadUrl")
+		name=$(echo $url | awk -F "/" '{print $NF}' | sed "s#.zip##g")
+		_command "wget -c" "${url}"
+		unzip -o ${name}.zip
+		mv ${name} jdk11
+		rm -rf ${name}.zip
+		chmod +x jdk11/bin/*
+		echo -e "\n${BLUE}[Current JDK11 info]${WHITE}："
+		${path}/jdk11/bin/java -version
+	}
+	_buildTools(){
+		using_jdk=$(echo ${json} | jq -r ".sdk.using_jdk")
+		sdk_root=$(eval echo "$(echo ${json} | jq -r ".sdk.sdk_root")")
+		case $using_jdk in
+			#8)
+			#	export JAVA_HOME="${HOME}/jdk/jdk8"  
+			#	if [ ! -d "${JAVA_HOME}" ];then
+			#		echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+			#		exit
+			#	fi
+			#	;;
+			11)
+				export JAVA_HOME="${HOME}/jdk/jdk11"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK11不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			17)
+				export JAVA_HOME="${PREFIX}/opt/openjdk"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK17不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			*)
+				echo -e "\njdk版本仅限： --> ${GREEN}11 OR 17${WHITE}\n${RED}请改正配置文件的jdk版本 EXIT！${WHITE}"
+				exit
+				;;
+		esac
+		${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --list > .tmp 
+		if [ ! $? == 0 ];then
+			echo -e "\n${RED}[Note]${WHITE}：网络错误 OR 请先安装sdkmanager！${RED}EXIT！"
+			exit
+		fi
+		row=$(cat .tmp | grep -n "Available Packages:"  | awk -F ":" '{print $1}' )
+		row2=$(cat .tmp | grep -n "Available Updates:"  | awk -F ":" '{print $1}' )
+		if [ "$row2" == "" ];then
+			buildToolsArr=($(awk "NR>=${row}{print}" .tmp | grep "build-tools;" | awk '{print $1}'))	
+		else
+			buildToolsArr=($(awk "NR==${row},NR==${row2}" .tmp | grep "build-tools;" | awk '{print $1}'))	
+		fi
+		num=${#buildToolsArr[@]}
+		for x in $(seq 0 $((${num} - 1)))
+		do
+			name=${buildToolsArr[$x]}
+			version=$(echo ${name} | awk -F ";" '{print $2}')
+			path="${sdk_root}/build-tools/${version}"
+			if [ -e "${path}" ];then
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}\t[${GREEN}installed ${YELLOW}✔${WHITE}]"
+			else
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}"
+			fi
+		done
+	echo -en "请输入序号：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${num} ]];then
+		name=${buildToolsArr[$((${op} - 1))]}
+		echo -e "${GREEN}[Note]${WHITE}：选中 ${name}"
+		version=$(echo ${name} | awk -F ";" '{print $2}')
+		path="${sdk_root}/build-tools/${version}"
+		_checkInstall ${path}
+		[ ! "$?" == "0" ] && exit
+		yes | ${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --install "${name}"
+		if [ ! -d "${path}" ];then
+			version=$(echo ${version} | sed 's#\.0\.0##g')
+			_command "wget -c" "http://dl-ssl.google.com/android/repository/build-tools_r${version}-linux.zip"
+			unzip -o "build-tools_r${version}-linux.zip" -d "build-tools_r${version}-linux"
+			if [ "$?" == "0" ];then
+				mkdir -p ${path}
+				num=$(ls build-tools_r${version}-linux/* | wc -l)
+				if [ ${num} -eq 1 ];then
+					mv build-tools_r${version}-linux/*/* ${path}
+				else
+					mv build-tools_r${version}-linux/*/* ${path}
+				fi
+			fi
+			rm -rf build-tools_r${version}-linux*
+		fi
+		echo -e "\n\n${YELLOW}[Note]${WHITE}：如需卸载请使用：${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --uninstall \"${name}\""
+	else
+		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的build-tools版本不存在！${WHITE}"
+		exit
+	fi
+	
+	}
+	_sdk(){
+		using_jdk=$(echo ${json} | jq -r ".sdk.using_jdk")
+		sdk_root=$(eval echo "$(echo ${json} | jq -r ".sdk.sdk_root")")
+		case $using_jdk in
+			#8)
+			#	export JAVA_HOME="${HOME}/jdk/jdk8"  
+			#	if [ ! -d "${JAVA_HOME}" ];then
+			#		echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+			#		exit
+			#	fi
+			#	;;
+			11)
+				export JAVA_HOME="${HOME}/jdk/jdk11"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK11不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			17)
+				export JAVA_HOME="${PREFIX}/opt/openjdk"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK17不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			*)
+				echo -e "\njdk版本仅限： --> ${GREEN}11 OR 17${WHITE}\n${RED}请改正配置文件的jdk版本 EXIT！${WHITE}"
+				exit
+				;;
+		esac
+		${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --list > .tmp 
+		if [ ! $? == 0 ];then
+			echo -e "\n${RED}[Note]${WHITE}：网络错误 OR 请先安装sdkmanager！${RED}EXIT！"
+			exit
+		fi
+		row=$(cat .tmp | grep -n "Available Packages:"  | awk -F ":" '{print $1}' )
+		row2=$(cat .tmp | grep -n "Available Updates:"  | awk -F ":" '{print $1}' )
+		if [ "$row2" == "" ];then
+			buildToolsArr=($(awk "NR>=${row}{print}" .tmp | grep "platforms;" | awk '{print $1}'))	
+		else
+			buildToolsArr=($(awk "NR==${row},NR==${row2}" .tmp | grep "platforms;" | awk '{print $1}'))	
+		fi
+		num=${#buildToolsArr[@]}
+		for x in $(seq 0 $((${num} - 1)))
+		do
+			name=${buildToolsArr[$x]}
+			version=$(echo ${name} | awk -F ";" '{print $2}')
+			path="${sdk_root}/platforms/${version}"
+			if [ -e "${path}" ];then
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}\t[${GREEN}installed ${YELLOW}✔${WHITE}]"
+			else
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}"
+			fi
+		done
+	echo -en "请输入序号：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${num} ]];then
+		name=${buildToolsArr[$((${op} - 1))]}
+		echo -e "${GREEN}[Note]${WHITE}：选中 ${name}"
+		version=$(echo ${name} | awk -F ";" '{print $2}')
+		path="${sdk_root}/platforms/${version}"
+		_checkInstall ${path}
+		[ ! "$?" == "0" ] && exit
+		yes | ${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --install "${name}"
+		#if [ ! -d "${path}" ];then
+		#	version=$(echo ${version} | sed 's#\.0\.0##g')
+		#	
+		#	_command "wget -c" "http://dl-ssl.google.com/android/repository/platform-31_r01*.zip"
+		#	unzip -o "build-tools_r${version}-linux.zip" -d "build-tools_r${version}-linux"
+		#	if [ "$?" == "0" ];then
+		#		mkdir -p ${path}
+		#		num=$(ls build-tools_r${version}-linux/* | wc -l)
+		#		if [ ${num} -eq 1 ];then
+		#			mv build-tools_r${version}-linux/*/* ${path}
+		#		else
+		#			mv build-tools_r${version}-linux/*/* ${path}
+		#		fi
+		#	fi
+		#	rm -rf build-tools_r${version}-linux*
+		#fi
+		
+		echo -e "\n\n${YELLOW}[Note]${WHITE}：如需卸载请使用：${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --uninstall \"${name}\""
+	else
+		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的 platforms;android-* 版本不存在！${WHITE}"
+		exit
+	fi
+	
+	}
+	_sources(){
+		using_jdk=$(echo ${json} | jq -r ".sdk.using_jdk")
+		sdk_root=$(eval echo "$(echo ${json} | jq -r ".sdk.sdk_root")")
+		case $using_jdk in
+			#8)
+			#	export JAVA_HOME="${HOME}/jdk/jdk8"  
+			#	if [ ! -d "${JAVA_HOME}" ];then
+			#		echo -e "\n${RED}[E]：${WHITE} JDK8不存在请先安装！${RED}EXIT！"
+			#		exit
+			#	fi
+			#	;;
+			11)
+				export JAVA_HOME="${HOME}/jdk/jdk11"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK11不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			17)
+				export JAVA_HOME="${PREFIX}/opt/openjdk"
+				if [ ! -d "${JAVA_HOME}" ];then
+					echo -e "\n${RED}[E]：${WHITE} JDK17不存在请先安装！${RED}EXIT！"
+					exit
+				fi
+				;;
+			*)
+				echo -e "\njdk版本仅限： --> ${GREEN}11 OR 17${WHITE}\n${RED}请改正配置文件的jdk版本 EXIT！${WHITE}"
+				exit
+				;;
+		esac
+		${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --list > .tmp 
+		if [ ! $? == 0 ];then
+			echo -e "\n${RED}[Note]${WHITE}：网络错误 OR 请先安装sdkmanager！${RED}EXIT！"
+			exit
+		fi
+		row=$(cat .tmp | grep -n "Available Packages:"  | awk -F ":" '{print $1}' )
+		row2=$(cat .tmp | grep -n "Available Updates:"  | awk -F ":" '{print $1}' )
+		if [ "$row2" == "" ];then
+			buildToolsArr=($(awk "NR>=${row}{print}" .tmp | grep "sources;" | awk '{print $1}'))	
+		else
+			buildToolsArr=($(awk "NR==${row},NR==${row2}" .tmp | grep "sources;" | awk '{print $1}'))	
+		fi
+		num=${#buildToolsArr[@]}
+		for x in $(seq 0 $((${num} - 1)))
+		do
+			name=${buildToolsArr[$x]}
+			version=$(echo ${name} | awk -F ";" '{print $2}')
+			path="${sdk_root}/sources/${version}"
+			if [ -e "${path}" ];then
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}\t[${GREEN}installed ${YELLOW}✔${WHITE}]"
+			else
+				echo -e "${GREEN}$((${x} + 1))${WHITE}．${name}"
+			fi
+		done
+	echo -en "请输入序号：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${num} ]];then
+		name=${buildToolsArr[$((${op} - 1))]}
+		echo -e "${GREEN}[Note]${WHITE}：选中 ${name}"
+		version=$(echo ${name} | awk -F ";" '{print $2}')
+		path="${sdk_root}/sources/${version}"
+		_checkInstall ${path}
+		[ ! "$?" == "0" ] && exit
+		yes | ${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --install "${name}"
+		#if [ ! -d "${path}" ];then
+		#	version=$(echo ${version} | sed 's#\.0\.0##g')
+		#	_command "wget -c" "http://dl-ssl.google.com/android/repository/build-tools_r${version}-linux.zip"
+		#	unzip -o "build-tools_r${version}-linux.zip" -d "build-tools_r${version}-linux"
+		#	if [ "$?" == "0" ];then
+		#		mkdir -p ${path}
+		#		num=$(ls build-tools_r${version}-linux/* | wc -l)
+		#		if [ ${num} -eq 1 ];then
+		#			mv build-tools_r${version}-linux/*/* ${path}
+		#		else
+		#			mv build-tools_r${version}-linux/*/* ${path}
+		#		fi
+		#	fi
+		#	rm -rf build-tools_r${version}-linux*
+		#fi
+		echo -e "\n\n${YELLOW}[Note]${WHITE}：如需卸载请使用：${sdk_root}/cmdline-tools/bin/sdkmanager --sdk_root=${sdk_root} --uninstall \"${name}\""
+	else
+		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的build-tools版本不存在！${WHITE}"
+		exit
+	fi
+	
+	}
+	case "$@" in
+		"sdkmanager")
+			_sdkmanager
+			;;
+		"sdk")
+			_sdk
+			;;
+		"build-tools")
+			_buildTools
+			;;
+		"sources")
+			_sources
+			;;			
+		"jdk8")
+			_jdk8
+			;;		
+		"jdk11")
+			_jdk11
+			;;		
+		*)
+			echo -e "\n${RED}[E]${WHITE}：$@ 参数错误！${RED}EXIT！${WHITE}"
 		;;
-	"build-tools")
-		echo
-		;;
-	"jdk8")
-		echo
-		;;		
-	"jdk11")
-		echo
-		;;		
-	*)
-		echo
-	;;
-esac
+	esac
 }
 
+_update(){
+	echo -e "\n${YELLOW}尝试获取最新版本.......${WHITE}"
+	url="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/android-tool"
+	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apkToolConfig.json"
+	txt=$(curl -sL "${url}/apkToolConfig.json")
+	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apktool.sh"
+	at=$(curl -sL "${url}/apktool.sh")
+	newVersion=$(echo "${txt}" | jq -r .version)
+	oldVersion=$(echo "${json}" | jq -r .version)
+	if [[ -z "${newVersion}" || "${newVersion}" == "null" ]];then
+		echo -e "\n${RED}读取最新版本失败！请检查网络重试......"
+		exit
+	fi
+	nV=($(echo ${newVersion}  | sed "s#.# #g" ))
+	oV=($(echo ${oldVersion}  | sed "s#.# #g" ))
+	s=true
+	for x in 0 1 2
+	do
+		if [ ${nV[${x}]} -lt ${oV[${x}]} ];then
+			s=false
+		fi
+	done
+	if [ "${s}" == "true" ];then
+		echo -e "\n${GREEN}[new version]${WHITE}：${newVersion}"
+		echo ${txt} > ${HOME}/apkToolConfig.json
+		echo ${at} > ${HOME}/apktool.sh
+		echo -e "\n${GREEN}更新完毕！${WHITE}"
+		exit
+	else
+		echo -e "\n${YELLOW}无最新版本可用.......${WHITE}"
+		exit
+	fi
+}
 
 _info(){
+	echo -e "${GREEN}	_____________                  ________                       
+	___  __/__  /_____________________  __ \_____ _____  _________
+	__  /  __  __ \_  ___/  _ \  _ \_  / / /  __ \`/_  / / /_  ___/
+	_  /   _  / / /  /   /  __/  __/  /_/ // /_/ /_  /_/ /_(__  ) 
+	/_/    /_/ /_//_/    \___/\___//_____/ \__,_/ _\__, / /____/  
+	                                              /____/${WHITE}"
 	echo -e "$(
 	cat <<-EOF
-		测试
+	    \n${RED}    Source of project support${WHITE}[目前支持的Android项目来源]：
+	        ·Android Studio  [win/Linux软件]--> https://developer.android.google.cn/studio
+	        ·CodeAssist      [安卓软件]--> https://github.com/tyron12233/CodeAssist
+	        ·AIDE            [安卓软件]
+	        ·This Script     [termux脚本]--> https://github.com/Tridays/command-tools/tree/main/Termux/android-tool
+		\n\n
 	EOF
 	)"
 }
 
 _userSelect(){
-num=$(echo ${json} | jq -r ".androidProject | length")
-if [ "${num}" == "0" ];then
-	echo -e "\n${YELLOW}[W]：${WHITE}当前配置文件，没有任何项目！${jsonPath} ${RED}EXIT ！${WHITE}"
-	exit
-fi
-
-echo -e "\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
-for x in $(seq 0 $((${num} - 1)))
-do
-	projectName=$(echo ${json} | jq -r ".androidProject[${x}].projectName")
-	echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${projectName}"
-done
-echo -en "请输入项目序号：${GREEN}" ""
-read op
-op=$(echo ${op} | sed "s# ##g")
-if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${num} ]];then
-	export projectNum=$((${op} - 1))
-else
-	echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的项目不存在！${WHITE}"
-	exit
-fi
+	num=$(echo ${json} | jq -r ".androidProject | length")
+	if [ "${num}" == "0" ];then
+		echo -e "\n${YELLOW}[W]：${WHITE}当前配置文件，没有任何项目！${jsonPath} ${RED}EXIT ！${WHITE}"
+		exit
+	fi
+	
+	echo -e "\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+	for x in $(seq 0 $((${num} - 1)))
+	do
+		projectName=$(echo ${json} | jq -r ".androidProject[${x}].projectName")
+		echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${projectName}"
+	done
+	echo -en "请输入项目序号：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${num} ]];then
+		export projectNum=$((${op} - 1))
+	else
+		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的项目不存在！${WHITE}"
+		exit
+	fi
 }
 
-
+# 依赖
+#dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch jq x11-repo qemu-system-x86_64 "
+dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch jq  "
+_checkenv ${dependences}
 jsonPath="${HOME}/apkToolConfig.json"
 json=$(cat ${jsonPath})
 echo ${json} | jq -r > /dev/null 2>&1
@@ -490,21 +895,22 @@ if [ ! "$?" == "0" ];then
 fi
 # 脚本工作路径
 wordPathRoot=$(eval echo "$(echo ${json} | jq -r .wordPathRoot)")
-if [ ! -e "${wordPathRoot}" ];then
+if [ ! -d "${wordPathRoot}" ];then
 	mkdir -p ${wordPathRoot}
 fi
-if [ ! -e "${HOME}/storage" ];then
+if [ ! -d "${HOME}/storage" ];then
 	termux-setup-storage
 fi
+Version=$(echo ${json} | jq -r .version)
 sharedPath="${HOME}/storage/shared/Download/apktool"
 mkdir -p ${sharedPath}
 main(){
-	# 依赖
-	dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch"
-	_checkenv ${dependences}
 	case "$1" in
 	"-create")
 		echo
+		;;	
+	"-update")
+		_update
 		;;	
 	"-install" | "-i")
 		shift 1
@@ -528,11 +934,13 @@ main(){
 		\n\n${RED}Usage${WHITE}[用法]：
 			
 		    ${GREEN}-create project${WHITE}         创建Android项目
-		    ${GREEN}-dialog${WHITE}                 使用dialog对话面板操作
+		    ${GREEN}-update${WHITE}                 更新脚本和配置
 		    
 		    ${RED}[-install (OR) -i]${WHITE}
-		    ${GREEN}-install sdk${WHITE}            安装sdk
+		    ${GREEN}-install sdkmanager${WHITE}     安装cmdline-tools管理包
+		    ${GREEN}-install sdk${WHITE}            安装sdk platforms;android-*
 		    ${GREEN}-install build-tools${WHITE}    安装build-tools
+		    ${GREEN}-install sources${WHITE}        安装sources;android-*
 		    ${RED}[Default jdk17]${WHITE}
 		    ${GREEN}-install jdk8${WHITE}           额外安装jdk8
 		    ${GREEN}-install jdk11${WHITE}          额外安装jdk11
@@ -554,18 +962,12 @@ main(){
 		                  ↓
 		            install APK     [安装APK：有root：自动安装 (OR) 无root：手动安装]
 		        
-		    ${GREEN}-info${WHITE}                   脚本信息
+		    ${GREEN}-info${WHITE}                   获取脚本详细信息、最新版本等等
 		    ${GREEN}-H${WHITE}                      帮助
-		    		    
-		    Script Version：1.0.5
+		    
+		    Current Script Version：${Version}
 		    Termux Version：0.118.0
 		    Author：${YELLOW}By ThreeDays${WHITE}
-		    
-		    ${RED}    Source of project support${WHITE}[目前支持的Android项目来源]：
-		        ·Android Studio  [win/Linux软件]--> https://developer.android.google.cn/studio
-		        ·CodeAssist      [安卓软件]--> https://github.com/tyron12233/CodeAssist
-		        ·AIDE            [安卓软件]
-		        ·This Script     [termux脚本]
 		    
 		    \n\n
 		EOF

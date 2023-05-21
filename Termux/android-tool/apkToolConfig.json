@@ -4,11 +4,12 @@
 	"sdk": {
 		"sdk_root": "${HOME}/sdk",
 		"downloadUrl": "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip",
-		"channel": "0"
+		"channel": "0",
+		"using_jdk": "17"
 	},
 	"jdk": {
-		"jdk8_downloadUrl": "",
-		"jdk11_downloadUrl": ""
+		"jdk8_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/jdk8_8u331_all/jdk8_8u331_all.zip",
+		"jdk11_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/openjdk-11.0.12-aarch64/openjdk-11.0.12.zip"
 	},
 	"androidProject": [
 		{
@@ -17,8 +18,8 @@
 			"namespace": "com.example.app",
 			"signeType": "V1+V2+V3",
 			"AAPT2": "${PREFIX}/bin/aapt2",
-			"jdk": "17",
-			"cmd": "gradle build",
+			"jdk": "11",
+			"cmd": " ./gradlew build",
 			"keyName": "release-key.keystore",
 			"password": "123456",
 			"Name": "xiaoming",
@@ -34,8 +35,8 @@
 			"namespace": "com.example.myapplication",
 			"signeType": "V2",
 			"AAPT2": "${PREFIX}/bin/aapt2",
-			"jdk": "11",
-			"cmd": "./gradlew build",
+			"jdk": "17",
+			"cmd": "gradle clean && ${HOME}/MyApplication/gradlew build",
 			"keyName": "release-key.keystore",
 			"password": "acq369258",
 			"Name": "test",
@@ -47,8 +48,8 @@
 		},
 		{
 			"projectName": "Android项目3，贪吃蛇游戏",
-			"projectPath": "${HOME}/MyApplication",
-			"namespace": "com.example.myapplication",
+			"projectPath": "${HOME}/snake",
+			"namespace": "com.example.snake",
 			"signeType": "",
 			"AAPT2": "${PREFIX}/bin/aapt2",
 			"jdk": "11",
@@ -61,5 +62,6 @@
 			"State": "test",
 			"CountryCode": "99"
 		}
-	]
+	],
+	"version": "1.0.5"
 }
