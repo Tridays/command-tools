@@ -9,6 +9,7 @@ if [ "$TERM" == "xterm-256color" ];then
 	PURPLE="\e[35;1m"    #紫红
 	CYANINE="\e[36;1m"    #青蓝
 	WHITE="\e[0m"       ##白色
+	GREY="\e[1;30m"     #灰色
 else
 	RED=""
 	GREEN=""
@@ -162,7 +163,7 @@ _checkenv(){
 	num=0
 	for x in $@
 	do
-		if [ -z "$(dpkg -l | grep $x)" ];then
+if [ -z "$(dpkg -l | awk '{print $2}' | grep -wo $x)" ];then
 			if [ "${num}" == "0" ];then
 				_command "pkg update -y"
 				num=1
@@ -237,7 +238,9 @@ _installAPK(){
 		else
 			mkdir -p "${sharedPath}/apk-signe"
 			cp -r "${workplace}" "${sharedPath}/apk-signe"
-			echo -e "\n${GREEN}[Note]${WHITE}：APK已复制一份至 /storage/emulated/0/Download/apktool/${namespace} 请手动安装"
+			echo -e "\n${GREEN}[Note]${WHITE}：APK已复制一份至 /storage/emulated/0/Download/apktool/apk-signe/${namespace}"
+			apkName=$(echo ${x} | awk -F "/" '{print $NF}')
+			am start -a android.intent.action.VIEW -t application/vnd.android.package-archive -d "file:///storage/emulated/0/Download/apktool/apk-signe/${namespace}/${apkName}"
 		fi
 	done
 	exit
@@ -810,10 +813,13 @@ _update(){
 	url="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/android-tool"
 	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apkToolConfig.json"
 	txt=$(curl -sL "${url}/apkToolConfig.json")
+	curl -sL "${url}/apktool.sh" > ${HOME}/.tmp
+	${HOME}/apktool.sh
 	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apktool.sh"
-	at=$(curl -sL "${url}/apktool.sh")
 	newVersion=$(echo "${txt}" | jq -r .version)
 	oldVersion=$(echo "${json}" | jq -r .version)
+	#echo "$newVersion"
+	#echo "$oldVersion"
 	if [[ -z "${newVersion}" || "${newVersion}" == "null" ]];then
 		echo -e "\n${RED}读取最新版本失败！请检查网络重试......"
 		exit
@@ -823,14 +829,19 @@ _update(){
 	s=true
 	for x in 0 1 2
 	do
-		if [ ${nV[${x}]} -lt ${oV[${x}]} ];then
+		if [[ ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} -lt ${oV[${x}]} ]];then
+			echo "${nV[${x}]} 和 ${oV[${x}]}"
 			s=false
 		fi
 	done
 	if [ "${s}" == "true" ];then
 		echo -e "\n${GREEN}[new version]${WHITE}：${newVersion}"
-		echo ${txt} > ${HOME}/apkToolConfig.json
-		echo ${at} > ${HOME}/apktool.sh
+		echo ${txt} | jq -r > ${HOME}/apkToolConfig.json
+		mv ${HOME}/.tmp ${HOME}/apktool.sh
+		# 备份
+		zip ${HOME}/apktool-${newVersion}.zip ${HOME}/apkToolConfig.json ${HOME}/apktool.sh
+		echo -e "\n${GREEN}[Script  Backups]${WHITE}：${HOME}/apktool-${newVersion}.zip"
+		cp -f ${HOME}/apktool-${newVersion}.zip ${sharedPath} 
 		echo -e "\n${GREEN}更新完毕！${WHITE}"
 		exit
 	else
@@ -849,10 +860,23 @@ _info(){
 	echo -e "$(
 	cat <<-EOF
 	    \n${RED}    Source of project support${WHITE}[目前支持的Android项目来源]：
-	        ·Android Studio  [win/Linux软件]--> https://developer.android.google.cn/studio
-	        ·CodeAssist      [安卓软件]--> https://github.com/tyron12233/CodeAssist
-	        ·AIDE            [安卓软件]
-	        ·This Script     [termux脚本]--> https://github.com/Tridays/command-tools/tree/main/Termux/android-tool
+	        ${GREEN}·${WHITE}Android Studio  [${GREEN}✔${WHITE}][win/Linux软件]--> https://developer.android.google.cn/studio
+	        ${RED}·${WHITE}IntelliJ IDEA   [${RED}✘${WHITE}][win/Linux软件]--> https://www.jetbrains.com/idea
+	        ${RED}·${WHITE}Eclipse         [${RED}✘${WHITE}][win/Linux软件]--> https://www.eclipse.org/downloads
+	        ${GREEN}·${WHITE}CodeAssist      [${GREEN}✔${WHITE}][安卓软件]--> https://github.com/tyron12233/CodeAssist
+	        ${GREEN}·${WHITE}AIDE            [${GREEN}✔${WHITE}][安卓软件]
+	        ${GREEN}·${WHITE}This Script     [${GREEN}✔${WHITE}][termux脚本]--> https://github.com/Tridays/command-tools/tree/main/Termux/android-tool
+	        
+		${RED}    Supported languages${WHITE}[目前支持的语言]：
+	        ${GREEN}·${WHITE}Java         [${GREEN}✔${WHITE}]
+	        ${RED}·${WHITE}Kotlin       [${RED}✘${WHITE}]
+	        ${RED}·${WHITE}C++          [${RED}✘${WHITE}]
+	        ${RED}·${WHITE}C#           [${RED}✘${WHITE}]
+	        ${RED}·${WHITE}JavaScript   [${RED}✘${WHITE}]
+	        ${RED}·${WHITE}Python       [${RED}✘${WHITE}]
+	        
+		    Author's message：目前脚本在起步阶段，作者偶尔摸鱼写 OR 修bug ${GREEN}(${YELLOW}p${RED}≧${GREEN}w\e${RED}≦\e${YELLOW}q\e${GREEN})${WHITE}
+		    ${GREY}QQ交流群：1888888      [入群密码：apktool]
 		\n\n
 	EOF
 	)"
@@ -884,7 +908,7 @@ _userSelect(){
 
 # 依赖
 #dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch jq x11-repo qemu-system-x86_64 "
-dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch jq  "
+dependences="tur-repo apksigner aapt aapt2 gradle zip git wget neofetch jq"
 _checkenv ${dependences}
 jsonPath="${HOME}/apkToolConfig.json"
 json=$(cat ${jsonPath})
@@ -962,8 +986,8 @@ main(){
 		                  ↓
 		            install APK     [安装APK：有root：自动安装 (OR) 无root：手动安装]
 		        
-		    ${GREEN}-info${WHITE}                   获取脚本详细信息、最新版本等等
-		    ${GREEN}-H${WHITE}                      帮助
+		    ${GREEN}-info${WHITE}                   获取脚本更详细信息
+		    ${GREEN}-h${WHITE}                      帮助
 		    
 		    Current Script Version：${Version}
 		    Termux Version：0.118.0
