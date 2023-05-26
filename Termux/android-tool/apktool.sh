@@ -1037,6 +1037,7 @@ _create(){
 			rm -rf emptyActivity_Java
 			if [ ! -e "`pwd`/emptyActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				rm -rf ${projectpath}
 				exit
 			fi
 			unzip -o emptyActivity_Java.zip
@@ -1053,6 +1054,7 @@ _create(){
 			rm -rf emptyActivity_Kotlin
 			if [ ! -e "`pwd`/emptyActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				rm -rf ${projectpath}
 				exit
 			fi
 			unzip -o emptyActivity_Kotlin.zip
@@ -1113,6 +1115,7 @@ _create(){
 			rm -rf noActivity_Java
 			if [ ! -e "`pwd`/noActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				rm -rf ${projectpath}
 				exit
 			fi
 			unzip -o noActivity_Java.zip
@@ -1146,6 +1149,7 @@ _create(){
 			rm -rf noActivity_Kotlin
 			if [ ! -e "`pwd`/noActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				rm -rf ${projectpath}
 				exit
 			fi
 			unzip -o noActivity_Kotlin.zip
@@ -1221,8 +1225,16 @@ _update(){
 	txt=$(curl -sL "${url}/apkToolConfig.json")
 	curl -sL "${url}/apktool.sh" > ${HOME}/.tmp
 	# 备份
-	t=$(date +%Y-%m-%d-%H:%M:%S)
-	zip ${HOME}/apktool-${t}.zip ${HOME}/apkToolConfig.json ${HOME}/apktool.sh
+	cd ${HOME}
+	mkdir -p ${wordPathRoot}/backup ${sharedPath}/backup
+	if [ $(ls -1q "${wordPathRoot}/backup" | wc -l) -gt 10 ]; then
+	    oldest=$(ls -1tq "${wordPathRoot}/backup" | tail -n 1)
+	    #删除最旧的文件
+	    rm -rf "${wordPathRoot}/backup/${oldest}" ${sharedPath}/backup/*
+	fi
+	t=$(date +%Y-%m-%d_%H-%M-%S)
+	zip ${wordPathRoot}/backup/apktool-${t}.zip apkToolConfig.json
+	zip ${wordPathRoot}/backup/apktool-${t}.zip apktool.sh
 	echo -e "\n${GREEN}[Script  Backups]${WHITE}：${HOME}/apktool-${t}.zip"
 	# shell
 	#echo -e "\n${GREEN}[URL]${WHITE}：${url}/apktool.sh"
@@ -1255,18 +1267,18 @@ _update(){
 					mv ${HOME}/.tmp ${HOME}/apktool.sh
 					;;
 				config)
-					zip ${HOME}/apktool-${t}.zip 
 					echo ${txt} | jq -r > ${HOME}/apkToolConfig.json
 					echo -e "\n${YELLOW}[Note]${WHITE}：旧的配置文件已被新配置文件覆盖！请重新配置！"
 					;;
 				template)
 					cd ${wordPathRoot}
+					rm -rf template.zip
 					_command "wget -c" "${url}/template.zip"
 					unzip -o template.zip
 					;;
 			esac							
 	done
-	cp -f ${HOME}/apktool-${t}.zip ${sharedPath} 
+	cp -r "${wordPathRoot}/backup" "${sharedPath}"
 	echo -e "\n${GREEN}此次更新结束！${WHITE}"
 }
 
@@ -1351,7 +1363,7 @@ if [ ! -d "${HOME}/storage" ];then
 	termux-setup-storage
 fi
 Version=$(echo ${json} | jq -r .shell_version)
-sharedPath="${HOME}/storage/shared/Download/apktool"
+sharedPath="/storage/emulated/0/Download/apktool"
 mkdir -p ${sharedPath}
 main(){
 	case "$1" in
