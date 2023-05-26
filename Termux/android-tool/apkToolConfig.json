@@ -1,67 +1,70 @@
 {
-	"root": false,
-	"wordPathRoot": "${HOME}/.apktool",
-	"sdk": {
-		"sdk_root": "${HOME}/sdk",
-		"downloadUrl": "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip",
-		"channel": "0",
-		"using_jdk": "17"
-	},
-	"jdk": {
-		"jdk8_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/jdk8_8u331_all/jdk8_8u331_all.zip",
-		"jdk11_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/openjdk-11.0.12-aarch64/openjdk-11.0.12.zip"
-	},
-	"androidProject": [
-		{
-			"projectName": "Android项目1，学习软件",
-			"projectPath": "${HOME}/App",
-			"namespace": "com.example.app",
-			"signeType": "V1+V2+V3",
-			"AAPT2": "${PREFIX}/bin/aapt2",
-			"jdk": "11",
-			"cmd": " ./gradlew build",
-			"keyName": "release-key.keystore",
-			"password": "123456",
-			"Name": "xiaoming",
-			"OrganizationalUnit": "td",
-			"Organizational": "td",
-			"City": "td",
-			"State": "td",
-			"CountryCode": "86"
-		},
-		{
-			"projectName": "Android项目2，购物APP",
-			"projectPath": "${HOME}/MyApplication",
-			"namespace": "com.example.myapplication",
-			"signeType": "V2",
-			"AAPT2": "${PREFIX}/bin/aapt2",
-			"jdk": "17",
-			"cmd": "gradle clean && ${HOME}/MyApplication/gradlew build",
-			"keyName": "release-key.keystore",
-			"password": "acq369258",
-			"Name": "test",
-			"OrganizationalUnit": "test",
-			"Organizational": "test",
-			"City": "test",
-			"State": "test",
-			"CountryCode": "99"
-		},
-		{
-			"projectName": "Android项目3，贪吃蛇游戏",
-			"projectPath": "${HOME}/snake",
-			"namespace": "com.example.snake",
-			"signeType": "",
-			"AAPT2": "${PREFIX}/bin/aapt2",
-			"jdk": "11",
-			"keyName": "release-key.keystore",
-			"password": "acq369258",
-			"Name": "test",
-			"OrganizationalUnit": "test",
-			"Organizational": "test",
-			"City": "test",
-			"State": "test",
-			"CountryCode": "99"
-		}
-	],
-	"version": "1.0.5"
+  "root": false,
+  "wordPathRoot": "${HOME}/.apktool",
+  "sdk": {
+    "sdk_root": "${HOME}/sdk",
+    "downloadUrl": "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip",
+    "channel": "0",
+    "using_jdk": "17"
+  },
+  "jdk": {
+    "jdk8_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/jdk8_8u331_all/jdk8_8u331_all.zip",
+    "jdk11_downloadUrl": "https://github.com/Tridays/command-tools/releases/download/openjdk-11.0.12-aarch64/openjdk-11.0.12.zip"
+  },
+  "androidProject": [
+    {
+      "projectName": "Android项目1，学习软件",
+      "projectPath": "${HOME}/App",
+      "namespace": "com.example.app",
+      "signeType": "V1+V2+V3",
+      "AAPT2": "${PREFIX}/bin/aapt2",
+      "jdk": "11",
+      "cmd": " ./gradlew build",
+      "keyName": "release-key.keystore",
+      "password": "123456",
+      "Name": "xiaoming",
+      "OrganizationalUnit": "td",
+      "Organizational": "td",
+      "City": "td",
+      "State": "td",
+      "CountryCode": "86"
+    },
+    {
+      "projectName": "Android项目2，购物APP",
+      "projectPath": "${HOME}/MyApplication",
+      "namespace": "com.example.myapplication",
+      "signeType": "V2",
+      "AAPT2": "${PREFIX}/bin/aapt2",
+      "jdk": "17",
+      "cmd": "gradle clean && ${HOME}/MyApplication/gradlew build",
+      "keyName": "release-key.keystore",
+      "password": "acq369258",
+      "Name": "test",
+      "OrganizationalUnit": "test",
+      "Organizational": "test",
+      "City": "test",
+      "State": "test",
+      "CountryCode": "99"
+    },
+    {
+      "projectName": "Android项目3，贪吃蛇游戏",
+      "projectPath": "${HOME}/CodeAssist",
+      "namespace": "com.tyron.code",
+      "signeType": "V3",
+      "AAPT2": "${PREFIX}/bin/aapt2",
+      "jdk": "11",
+      "cmd": "./gradlew build",
+      "keyName": "release-key.keystore",
+      "password": "acq369258",
+      "Name": "test",
+      "OrganizationalUnit": "test",
+      "Organizational": "test",
+      "City": "test",
+      "State": "test",
+      "CountryCode": "99"
+    }
+  ],
+  "shell_version": "1.0.0",
+  "template_version": "0.0.1",
+  "config_version": "0.0.1"
 }

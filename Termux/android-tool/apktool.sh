@@ -253,7 +253,6 @@ _signe(){
 		_userSelect
 	fi
 	data=$(echo ${json} | jq -r ".androidProject[${projectNum}]")
-	# export ANDROID_SDK_ROOT=${HOME}/sdk
 	
 	# 配置信息
 	signeType=$(echo ${data} | jq -r ".signeType")
@@ -364,6 +363,7 @@ _auto(){
 	rm -rf .gradle app/build
 	
 	_autoBuild(){
+		echo -e "\n${GREEN}[pwd]${WHITE}：$(pwd)"
 		case ${jdk} in
 			8)
 				echo -e "\n${RED}[E]：${WHITE} 使用JDK8构建似乎存在bug，目前请优先使用 jdk11 OR jdk17！${RED}EXIT！"
@@ -808,46 +808,466 @@ _install(){
 	esac
 }
 
+_clear(){
+	# 全局缓存
+	echo -e "\n${YELLOW}[Global]${WHITE}：${HOME}/.gradle"
+	echo -en "\n是否清除全局缓存${GREY}[default: N]${WHITE}[${YELLOW}Y/N${WHITE}]：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ "${op}" == "y" || "${op}" == "Y" ]];then
+		rm -rf ${HOME}/.gradle
+	fi
+	
+	# 项目缓存
+	echo -e "\n${YELLOW}[Project]${WHITE}：project/.gradle"
+	echo -en "\n是否清除项目缓存${GREY}[default: N]${WHITE}[${YELLOW}Y/N${WHITE}]：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	if [[ "${op}" == "y" || "${op}" == "Y" ]];then
+		num=$(echo ${json} | jq -r ".androidProject | length")
+		if [ "${num}" == "0" ];then
+			echo -e "\n${YELLOW}[W]：${WHITE}当前配置文件，没有任何项目，不需要清除缓存！${jsonPath} ${RED}EXIT ！${WHITE}"
+			exit
+		fi
+		for x in $(seq 0 $((${num} - 1)))
+		do
+			projectName=$(echo ${json} | jq -r ".androidProject[${x}].projectName")
+			projectPath=$(eval echo "$(echo ${json} | jq -r ".androidProject[${x}].projectPath")")
+			echo -e "\n${YELLOW}[projectName]${WHITE}：${projectName}"
+			rm -rf ${projectPath}/{.gradle,app/build}
+			tree -L 2 ${projectPath}
+		done
+	fi
+	
+	# 清除配置文件无效项目
+	echo -e "\n${YELLOW}[Config]${WHITE}：${HOME}/apkToolConfig.json"
+	echo -en "\n是否清除配置文件无效项目${GREY}[default: Y]${WHITE}[${YELLOW}Y/N${WHITE}]：${GREEN}" 
+	read op
+	[[ "${op}" == "n" || "${op}" == "N" ]] && exit
+	num=$(echo ${json} | jq -r ".androidProject | length")
+	flags=0
+	for x in $(seq 0 $((${num} - 1)))
+	do
+		projectPath=$(eval echo "$(echo ${json} | jq -r .androidProject[${x}].projectPath)")
+		if [ ! -e "${projectPath}" ];then
+			echo -e "\n${YELLOW}[Note]${WHITE}：${GREEN}del${WHITE} ${projectPath}"
+			arr[${x}]=${x}
+			flags=1
+		fi
+	done
+	if [ "${flags}" == "1" ];then
+		index=$(echo ${arr[@]} | sed "s# #,#g")
+		json=$(echo ${json} | jq -r "del(.androidProject[${index}])")
+		echo ${json} | jq -r > ${jsonPath}
+	fi
+}
+
+
+_create(){
+	sdk_version=(
+		'API 16:Android 4.1 (Jelly Bean)'
+		'API 17:Android 4.2 (Jelly Bean)'
+		'API 18:Android 4.3 (Jelly Bean)'
+		'API 19:Android 4.4 (KitKat)'
+		'API 20:Android 4.4W (KitKat Wear)'
+		'API 21:Android 5.0 (Lollipop)'
+		'API 22:Android 5.1 (Lollipop)'
+		'API 23:Android 6.0 (Marshmallow)'
+		'API 24:Android 7.0 (Nougat)'
+		'API 25:Android 7.1.1 (Nougat)'
+		'API 26:Android 8.0 (Oreo)'
+		'API 27:Android 8.1 (Oreo)'
+		'API 28:Android 9.0 (Pie)'
+		'API 29:Android 10.0 (Q)'
+		'API 30:Android 11.0 (R)'
+		'API 31:Android 12.0 (S)'
+		'API 32:Android 12L (Sv2)'
+		'API 33:Android 13.0 (Tiramisu)'
+	)
+	_up_json(){
+		json_data="{}"
+		json_data=$(echo ${json_data} | jq -r ". + {\"projectName\": \"${projectName}\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"projectPath\": \"${projectpath}\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"namespace\": \"${namespace}\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"signeType\": \"V1 + V2 +V3\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"AAPT2\": \"\${PREFIX}/bin/aapt2\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"jdk\": \"17\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"cmd\": \"./gradlew build\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"keyName\": \"release-key.keystore\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"password\": \"123456\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"Name\": \"xiaoming\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"OrganizationalUnit\": \"test\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"Organizational\": \"test\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"City\": \"test\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"State\": \"test\"} ")
+		json_data=$(echo ${json_data} | jq -r ". + {\"CountryCode\": \"86\"} ")
+	}
+	_createProject(){
+		# 应用名称
+		echo -en "\n[${GREEN}Note${WHITE}]：空值回车为默认值(Default)"
+		echo -en "\n应用名称[default: ${YELLOW}MyApplication${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		# 项目名字
+		export projectName=${op}
+		if [ -z "${op}" ];then
+			export projectName="MyApplication"
+		fi
+		
+		# 包名
+		namespace=com.example.${projectName}
+		echo -en "${WHITE}\n应用包名[default: ${YELLOW}${namespace}${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		export namespace=${op}
+		if [ -z "${op}" ];then
+			export namespace="com.example.${projectName}"
+		fi
+
+		# 项目位置
+		echo -en "${WHITE}\n保存路径[default: ${YELLOW}${HOME}/${projectName}${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		if [ -e "${HOME}/${projectName}" ];then
+			echo -e "\n${RED}[E]：${WHITE}此保存路径，已存在，请更换！ ${RED}EXIT ！${WHITE}"
+			exit
+		fi
+		export projectpath=${op}
+		if [ -z "${op}" ];then
+			export projectpath="${HOME}/${projectName}"
+		fi
+		
+		# 项目语言
+		Language=($(echo ${Language} | sed "s#/# #g"))
+		count=0
+		echo -e "\n\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+		for x in $(seq 0 $((${#Language[@]} - 1)))
+		do
+			echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${Language[${x}]}"
+			let count++
+		done
+		echo -en "${WHITE}\n项目语言[default: ${YELLOW}${Language[0]}${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		expr ${op} + 10 >>/dev/null 2>&1
+		if [ ! $? == 0 ];then
+			echo -e "\n${RED}[E]：${WHITE}不存在此选项！ ${RED}EXIT ！${WHITE}"
+			exit
+		fi
+		
+		if [ -z "${op}" ];then
+			export Language="${Language[0]}"
+		else
+			expr ${op} + 10 >>/dev/null 2>&1
+			if [ ! $? == 0 ] || [ ${op} -le 0 ] || [ ${op} -gt ${#Language[@]} ];then
+				echo -e "\n${RED}[E]：${WHITE}不存在此选项！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			export Language=${Language[$((${op} - 1))]}
+		fi
+		
+		# 最小SDK
+		count=0
+		echo -e "\n\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+		for x in $(seq 0 $((${#sdk_version[@]} - 1)))
+		do
+			echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${sdk_version[${x}]}"
+			let count++
+		done
+		echo -en "${WHITE}\n最小SDK版本[default: ${YELLOW}9 ${GREY}MinSDK=API 24:Android 7.0${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		if [ -z "${op}" ];then
+			export minSdk=$((9 +16))
+		else
+			expr ${op} + 10 >>/dev/null 2>&1
+			if [ ! $? == 0 ] || [ ${op} -le 0 ] || [ ${op} -gt ${#sdk_version[@]} ];then
+				echo -e "\n${RED}[E]：${WHITE}不存在此选项！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			export minSdk=$(( ${op} - 1 + 16 ))
+		fi
+		
+		# 目标🎯SDK
+		count=0
+		echo -e "\n\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+		for x in $(seq 0 $((${#sdk_version[@]} - 1)))
+		do
+			echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${sdk_version[${x}]}"
+			let count++
+		done
+		echo -en "${WHITE}\n目标SDK版本🎯[default: ${YELLOW}17 ${GREY}MinSDK=API 32:Android 12.0${WHITE}]：${GREEN}" ""
+		read op
+		op=$(echo ${op} | sed "s# ##g")
+		if [ -z "${op}" ];then
+			export targetSdk=$((17 + 16))
+		else
+			expr ${op} + 10 >>/dev/null 2>&1
+			if [ ! $? == 0 ] || [ ${op} -le 0 ] || [ ${op} -gt ${#sdk_version[@]} ];then
+				echo -e "\n${RED}[E]：${WHITE}不存在此选项！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			export targetSdk=$(( ${op} - 1 + 16 ))
+		fi
+	}
+	
+	_emptyActivity(){
+		# 支持的语言
+		Language="Java/Kotlin"
+		_createProject ${Language}
+		echo -e "$(
+			cat <<-EOF
+			\n\n\n${YELLOW}Info${WHITE}
+			----------
+			应用名称：${GREEN}${projectName}${WHITE}
+			应用包名：${GREEN}${namespace}${WHITE}
+			项目保存路径：${GREEN}${projectpath}${WHITE}
+			项目语言：${GREEN}${Language}${WHITE}
+			最小SDK版本：${GREEN}${minSdk}${WHITE}
+			目标SDK版本🎯：${GREEN}${targetSdk}${WHITE}
+			EOF
+		)"
+		_up_json
+		if [ "${Language}" == "Java" ];then
+			mkdir -p ${projectpath}
+			cd ${projectpath}
+			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
+			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
+			cd ${wordPathRoot}/template
+			rm -rf emptyActivity_Java
+			if [ ! -e "`pwd`/emptyActivity_Java.zip" ];then
+				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			unzip -o emptyActivity_Java.zip
+			# 处理根目录
+			cd emptyActivity_Java
+			noActivityPath=${wordPathRoot}/template/emptyActivity_Java
+		elif [ "${Language}" == "Kotlin" ];then
+			mkdir -p ${projectpath}
+			cd ${projectpath}
+			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
+			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
+			mkdir -p app/libs
+			cd ${wordPathRoot}/template
+			rm -rf emptyActivity_Kotlin
+			if [ ! -e "`pwd`/emptyActivity_Kotlin.zip" ];then
+				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			unzip -o emptyActivity_Kotlin.zip
+			# 处理根目录
+			cd emptyActivity_Kotlin
+			noActivityPath=${wordPathRoot}/template/emptyActivity_Kotlin
+		fi
+		grep -r -l "DEMO" "${noActivityPath}" | xargs sed -i "s/DEMO/${projectName}/g"
+		grep -r -l "com.example.demo" "${noActivityPath}" | xargs sed -i "s/com.example.demo/${namespace}/g"
+		SDKPATH=$(eval echo "$(echo ${json} | jq -r .sdk.sdk_root)")
+		grep -r -l "sdk.dir=" "${noActivityPath}" | xargs sed -i "s#SDKPATH#${SDKPATH}#g"
+		cp ./{.gitignore,build.gradle,gradle.properties,local.properties,settings.gradle} ${projectpath}
+		# 处理app
+		cd app
+		grep -r -l "minSdk value" "${noActivityPath}" | xargs sed -i "s/minSdk value/minSdk ${minSdk}/g"
+		grep -r -l "targetSdk value" "${noActivityPath}" | xargs sed -i "s/targetSdk value/targetSdk ${targetSdk}/g"
+		cp ./{.gitignore,build.gradle,proguard-rules.pro} ${projectpath}/app
+		# 处理src
+		cd src
+		rm -rf ${projectpath}/app/src/*
+		namespace="$(echo ${namespace} | sed 's|\.|/|g')"
+		mkdir -p ${projectpath}/app/src/{main,test,androidTest}/java/${namespace}
+		mkdir -p ${projectpath}/app/src/main/res
+		cp -rf ./main/{AndroidManifest.xml,res} ${projectpath}/app/src/main
+		for x in androidTest main test
+		do
+			 [ "${Language}" == "Kotlin" ] && find "`pwd`/${x}" -name *.kt  -print0 | xargs -0 cp -rp --target-directory=${projectpath}/app/src/${x}/java/${namespace}
+			 [ "${Language}" == "Java" ] && find "`pwd`/${x}" -name *.java  -print0 | xargs -0 cp -rp --target-directory=${projectpath}/app/src/${x}/java/${namespace}
+		done
+		echo -e "\n${GREEN}Done！"
+		json=$(echo ${json} | jq -r ".androidProject += [${json_data}]")
+		echo ${json} | jq -r > ${jsonPath}
+	}
+
+	_noActivity(){
+		# 支持的语言
+		Language="Java/Kotlin"
+		_createProject ${Language}
+		echo -e "$(
+			cat <<-EOF
+			\n\n\n${YELLOW}Info${WHITE}
+			----------
+			应用名称：${GREEN}${projectName}${WHITE}
+			应用包名：${GREEN}${namespace}${WHITE}
+			项目保存路径：${GREEN}${projectpath}${WHITE}
+			项目语言：${GREEN}${Language}${WHITE}
+			最小SDK版本：${GREEN}${minSdk}${WHITE}
+			目标SDK版本🎯：${GREEN}${targetSdk}${WHITE}
+			EOF
+		)"
+		_up_json
+		if [ "${Language}" == "Java" ];then
+			mkdir -p ${projectpath}
+			cd ${projectpath}
+			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
+			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
+			cd ${wordPathRoot}/template
+			rm -rf noActivity_Java
+			if [ ! -e "`pwd`/noActivity_Java.zip" ];then
+				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			unzip -o noActivity_Java.zip
+			# 处理根目录
+			cd noActivity_Java
+			noActivityPath=${wordPathRoot}/template/noActivity_Java
+			grep -r -l "DEMO" "${noActivityPath}" | xargs sed -i "s/DEMO/${projectName}/g"
+			grep -r -l "com.example.demo" "${noActivityPath}" | xargs sed -i "s/com.example.demo/${namespace}/g"
+			SDKPATH=$(eval echo "$(echo ${json} | jq -r .sdk.sdk_root)")
+			grep -r -l "sdk.dir=" "${noActivityPath}" | xargs sed -i "s#SDKPATH#${SDKPATH}#g"
+			cp ./{.gitignore,build.gradle,gradle.properties,local.properties,settings.gradle} ${projectpath}
+			# 处理app
+			cd app
+			grep -r -l "minSdk value" "${noActivityPath}" | xargs sed -i "s/minSdk value/minSdk ${minSdk}/g"
+			grep -r -l "targetSdk value" "${noActivityPath}" | xargs sed -i "s/targetSdk value/targetSdk ${targetSdk}/g"
+			cp ./{.gitignore,build.gradle,proguard-rules.pro} ${projectpath}/app
+			# 处理src
+			cd src
+			mkdir -p ${projectpath}/app/src/androidTest
+			cp -rf ${projectpath}/app/src/main/java ${projectpath}/app/src/androidTest
+			cp -rf ./main/{AndroidManifest.xml,res} ${projectpath}/app/src/main
+			find ${projectpath} -name *.java | xargs rm -rf
+			echo -e "\n${GREEN}Done！"
+		elif [ "${Language}" == "Kotlin" ];then
+			mkdir -p ${projectpath}
+			cd ${projectpath}
+			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
+			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
+			mkdir -p app/libs
+			cd ${wordPathRoot}/template
+			rm -rf noActivity_Kotlin
+			if [ ! -e "`pwd`/noActivity_Kotlin.zip" ];then
+				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
+				exit
+			fi
+			unzip -o noActivity_Kotlin.zip
+			# 处理根目录
+			cd noActivity_Kotlin
+			noActivityPath=${wordPathRoot}/template/noActivity_Kotlin
+			grep -r -l "DEMO" "${noActivityPath}" | xargs sed -i "s/DEMO/${projectName}/g"
+			grep -r -l "com.example.demo" "${noActivityPath}" | xargs sed -i "s/com.example.demo/${namespace}/g"
+			SDKPATH=$(eval echo "$(echo ${json} | jq -r .sdk.sdk_root)")
+			grep -r -l "sdk.dir=" "${noActivityPath}" | xargs sed -i "s#SDKPATH#${SDKPATH}#g"
+			cp ./{.gitignore,build.gradle,gradle.properties,local.properties,settings.gradle} ${projectpath}
+			# 处理app
+			cd app
+			grep -r -l "minSdk value" "${noActivityPath}" | xargs sed -i "s/minSdk value/minSdk ${minSdk}/g"
+			grep -r -l "targetSdk value" "${noActivityPath}" | xargs sed -i "s/targetSdk value/targetSdk ${targetSdk}/g"
+			cp ./{.gitignore,build.gradle,proguard-rules.pro} ${projectpath}/app
+			# 处理src
+			cd src
+			rm -rf ${projectpath}/app/src/*
+			namespace="$(echo ${namespace} | sed 's|\.|/|g')"
+			echo {main,test,androidTest}/${namespace}
+			mkdir -p ${projectpath}/app/src/{main,test,androidTest}/java/${namespace}
+			mkdir -p ${projectpath}/app/src/main/res
+			cp -rf ${projectpath}/app/src/main/java ${projectpath}/app/src/androidTest
+			cp -rf ./main/{AndroidManifest.xml,res} ${projectpath}/app/src/main
+			find ${projectpath} -name *.java | xargs rm -rf
+			echo -e "\n${GREEN}Done！"		
+		fi
+		#- --type：指定项目类型，这里指定为 Java 应用程序。
+		#- --test-framework：指定测试框架，这里指定为 JUnit。
+		#- --project-name：指定项目名称。
+		#- --dsl：指定构建脚本语言，这里指定为 Groovy。
+		#- --package：指定项目的 Java 包名称。
+		#- --skip-build：跳过生成默认的构建脚本和 Git 仓库配置。
+		json=$(echo ${json} | jq -r ".androidProject += [${json_data}]")
+		echo ${json} | jq -r > ${jsonPath}
+	}
+	
+	# main
+	arr=(
+	'No Activity'
+	'Empty Activity	'
+	)
+	echo -e "\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+	num=${#arr[@]}
+	for x in $(seq 0 $((${num} - 1)))
+	do		
+		echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${arr[${x}]}"
+	done
+	echo -en "\n请选择创建的模板[default: ${YELLOW}2${WHITE}]：${GREEN}" ""
+	read op
+	op=$(echo ${op} | sed "s# ##g")
+	[ -z ${op} ] && op=2
+	case $op in
+		1)
+			_noActivity
+			;;
+		2)
+			_emptyActivity	
+			;;
+		*)
+			echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的项目模板不存在！${WHITE}"
+			exit
+			;;
+	esac
+}
+
 _update(){
 	echo -e "\n${YELLOW}尝试获取最新版本.......${WHITE}"
 	url="https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/android-tool"
+	# json
 	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apkToolConfig.json"
 	txt=$(curl -sL "${url}/apkToolConfig.json")
 	curl -sL "${url}/apktool.sh" > ${HOME}/.tmp
-	${HOME}/apktool.sh
-	echo -e "\n${GREEN}[URL]${WHITE}：${url}/apktool.sh"
-	newVersion=$(echo "${txt}" | jq -r .version)
-	oldVersion=$(echo "${json}" | jq -r .version)
-	#echo "$newVersion"
-	#echo "$oldVersion"
-	if [[ -z "${newVersion}" || "${newVersion}" == "null" ]];then
-		echo -e "\n${RED}读取最新版本失败！请检查网络重试......"
-		exit
-	fi
-	nV=($(echo ${newVersion}  | sed "s#.# #g" ))
-	oV=($(echo ${oldVersion}  | sed "s#.# #g" ))
-	s=true
-	for x in 0 1 2
+	# 备份
+	t=$(date +%Y-%m-%d-%H:%M:%S)
+	zip ${HOME}/apktool-${t}.zip ${HOME}/apkToolConfig.json ${HOME}/apktool.sh
+	echo -e "\n${GREEN}[Script  Backups]${WHITE}：${HOME}/apktool-${t}.zip"
+	# shell
+	#echo -e "\n${GREEN}[URL]${WHITE}：${url}/apktool.sh"
+	# 依次更新 脚本，配置文件，模板
+	for j in shell config template
 	do
-		if [[ ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} -lt ${oV[${x}]} ]];then
-			echo "${nV[${x}]} 和 ${oV[${x}]}"
-			s=false
+		newVersion=$(echo "${txt}" | jq -r ".${j}_version")
+		oldVersion=$(echo "${json}" | jq -r ".${j}_version")
+		if [[ -z "${newVersion}" || "${newVersion}" == "null" ]];then
+			echo -e "\n${RED}读取最新版本失败！请检查网络重试......"
+			exit
 		fi
+		nV=($(echo ${newVersion}  | sed "s#.# #g" ))
+		oV=($(echo ${oldVersion}  | sed "s#.# #g" ))
+		s=true
+		for x in 0 1 2
+		do
+			if [[ ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} =~ ^[-]?[0-9]+$ && ${nV[${x}]} -lt ${oV[${x}]} ]];then
+				# echo "${nV[${x}]} 和 ${oV[${x}]}"
+				s=false
+			fi
+		done
+		if [ ! "${s}" == "true" ];then
+			echo -e "\n${GREEN}[${j}]${WHITE}：无最新版本可用......."
+			continue
+		fi
+			echo -e "\n${GREEN}[${j} new version]${WHITE}：${newVersion}"
+			case ${j} in
+				shell)
+					mv ${HOME}/.tmp ${HOME}/apktool.sh
+					;;
+				config)
+					zip ${HOME}/apktool-${t}.zip 
+					echo ${txt} | jq -r > ${HOME}/apkToolConfig.json
+					echo -e "\n${YELLOW}[Note]${WHITE}：旧的配置文件已被新配置文件覆盖！请重新配置！"
+					;;
+				template)
+					cd ${wordPathRoot}
+					_command "wget -c" "${url}/template.zip"
+					unzip -o template.zip
+					;;
+			esac							
 	done
-	if [ "${s}" == "true" ];then
-		echo -e "\n${GREEN}[new version]${WHITE}：${newVersion}"
-		echo ${txt} | jq -r > ${HOME}/apkToolConfig.json
-		mv ${HOME}/.tmp ${HOME}/apktool.sh
-		# 备份
-		zip ${HOME}/apktool-${newVersion}.zip ${HOME}/apkToolConfig.json ${HOME}/apktool.sh
-		echo -e "\n${GREEN}[Script  Backups]${WHITE}：${HOME}/apktool-${newVersion}.zip"
-		cp -f ${HOME}/apktool-${newVersion}.zip ${sharedPath} 
-		echo -e "\n${GREEN}更新完毕！${WHITE}"
-		exit
-	else
-		echo -e "\n${YELLOW}无最新版本可用.......${WHITE}"
-		exit
-	fi
+	cp -f ${HOME}/apktool-${t}.zip ${sharedPath} 
+	echo -e "\n${GREEN}此次更新结束！${WHITE}"
 }
 
 _info(){
@@ -859,17 +1279,18 @@ _info(){
 	                                              /____/${WHITE}"
 	echo -e "$(
 	cat <<-EOF
-	    \n${RED}    Source of project support${WHITE}[目前支持的Android项目来源]：
+	    \n${RED}    Source of project support${WHITE}[目前Android项目来源支持的情况]：
 	        ${GREEN}·${WHITE}Android Studio  [${GREEN}✔${WHITE}][win/Linux软件]--> https://developer.android.google.cn/studio
-	        ${RED}·${WHITE}IntelliJ IDEA   [${RED}✘${WHITE}][win/Linux软件]--> https://www.jetbrains.com/idea
-	        ${RED}·${WHITE}Eclipse         [${RED}✘${WHITE}][win/Linux软件]--> https://www.eclipse.org/downloads
+	        ${YELLOW}·${WHITE}IntelliJ IDEA   [${YELLOW}unknown${WHITE}][win/Linux软件]--> https://www.jetbrains.com/idea
+	        ${YELLOW}·${WHITE}Eclipse         [${YELLOW}unknown${WHITE}][win/Linux软件]--> https://www.eclipse.org/downloads
 	        ${GREEN}·${WHITE}CodeAssist      [${GREEN}✔${WHITE}][安卓软件]--> https://github.com/tyron12233/CodeAssist
+	        ${GREEN}·${WHITE}AndroidIDE      [${GREEN}✔${WHITE}][安卓软件]--> https://github.com/AndroidIDEOfficial/AndroidIDE
 	        ${GREEN}·${WHITE}AIDE            [${GREEN}✔${WHITE}][安卓软件]
-	        ${GREEN}·${WHITE}This Script     [${GREEN}✔${WHITE}][termux脚本]--> https://github.com/Tridays/command-tools/tree/main/Termux/android-tool
+	        ${GREEN}·${WHITE}This Script     [${GREEN}✔${WHITE}][shell脚本]--> https://github.com/Tridays/command-tools/tree/main/Termux/android-tool
 	        
-		${RED}    Supported languages${WHITE}[目前支持的语言]：
+		${RED}    Supported languages${WHITE}[目前支持的语言的情况]：
 	        ${GREEN}·${WHITE}Java         [${GREEN}✔${WHITE}]
-	        ${RED}·${WHITE}Kotlin       [${RED}✘${WHITE}]
+	        ${GREEN}·${WHITE}Kotlin       [${GREEN}✔${WHITE}]
 	        ${RED}·${WHITE}C++          [${RED}✘${WHITE}]
 	        ${RED}·${WHITE}C#           [${RED}✘${WHITE}]
 	        ${RED}·${WHITE}JavaScript   [${RED}✘${WHITE}]
@@ -908,9 +1329,13 @@ _userSelect(){
 
 # 依赖
 #dependences="tur-repo apksigner aapt aapt2 gradle git wget neofetch jq x11-repo qemu-system-x86_64 "
-dependences="tur-repo apksigner aapt aapt2 gradle zip git wget neofetch jq"
+dependences="tur-repo tree apksigner aapt aapt2 gradle zip git wget neofetch jq"
 _checkenv ${dependences}
 jsonPath="${HOME}/apkToolConfig.json"
+if [ ! -e "${jsonPath}" ];then
+	echo -e "\n${RED}[E]：${WHITE}配置文件不存在！请把json配置文件移至${HOME}${RED}EXIT ！${WHITE}"
+	exit
+fi
 json=$(cat ${jsonPath})
 echo ${json} | jq -r > /dev/null 2>&1
 if [ ! "$?" == "0" ];then
@@ -925,13 +1350,13 @@ fi
 if [ ! -d "${HOME}/storage" ];then
 	termux-setup-storage
 fi
-Version=$(echo ${json} | jq -r .version)
+Version=$(echo ${json} | jq -r .shell_version)
 sharedPath="${HOME}/storage/shared/Download/apktool"
 mkdir -p ${sharedPath}
 main(){
 	case "$1" in
 	"-create")
-		echo
+		_create
 		;;	
 	"-update")
 		_update
@@ -945,6 +1370,9 @@ main(){
 		;;
 	"-replace")
 		_changeAAPT2
+		;;
+	"-clear")
+		_clear
 		;;
 	"-auto")
 		_auto
@@ -971,6 +1399,7 @@ main(){
 		    
 		    ${GREEN}-replace${WHITE}                自动替换aapt2		    
 		    ${GREEN}-signe${WHITE}                  自动签名APK -> 有root权限会自动安装
+		    ${GREEN}-clear${WHITE}                  清除所有项目的构建缓存、全局缓存、配置文件失效项目等
 		    ${GREEN}-auto${WHITE}                   自动构建 -> 替换AAPT2 -> 签名APK -> 安装APK
 		    ${RED}    APK Build Flow${WHITE}[APK 构建流程思路]：
 		            create project    [创建Android项目]
