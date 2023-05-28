@@ -174,81 +174,85 @@ if [ -z "$(dpkg -l | awk '{print $2}' | grep -wo $x)" ];then
 }
 
 
-createkey(){
-	if [ ! -e "${workplace}/${keyName}" ];then
-		keytool -genkey -v -keystore ${keyName} -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass ${password} -keypass ${password} -dname "CN=${Name}, OU=${OrganizationalUnit}, O=${Organization}, L=${City}, S=${State}, C=${CountryCode}"
-		echo -e "\nkeytool -genkey -v -keystore ${keyName} -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass ${password} -keypass ${password} -dname "CN=${Name}, OU=${OrganizationalUnit}, O=${Organization}, L=${City}, S=${State}, C=${CountryCode}""
-	fi
-}
-V1(){
-	for x in $(ls | grep ".apk")
-	do
-		apkname=$(echo "${x}" | sed "s#.apk##g;s#-unsigned##g")
-		echo "V1签名：${apkname}.apk"
-		# jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my-release-key.keystore app/build/outputs/apk/release/app-release-unsigned-aligned.apk my-key-alias
-		jarsigner -verbose -keystore ${keyName} -storepass ${password} -keypass ${password} -signedjar ${apkname}-signed.apk ${x} release
-		echo -e "\njarsigner -verbose -keystore ${keystore} -storepass ${password} -keypass ${keypass} -signedjar ${apkname}-signed.apk ${x} release"
-		rm -rf ${x}
-	done
-}
-V2(){
-	for x in $(ls | grep ".apk")
-	do
-		apkname=$(echo "${x}" | sed "s#.apk##g;s#-unsigned##g")
-		echo "V2签名：${apkname}.apk"
-		apksigner sign --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} ${x}
-		echo -e "\napksigner sign --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} ${x}"
-		rm -rf *.idsig
-	done
-}
-V3(){
-	for x in $(ls | grep ".apk")
-	do
-		apkname=$(echo "${x}" | sed "s#.apk##g;s#-unsigned##g")
-		echo "zipalign签名优化：${apkname}.apk"
-		zipalign -v 4 ${x} ${apkname}-zipalign.apk
-		echo -e "\nzipalign -v 4 ${x} ${apkname}-zipalign.apk"
-		rm -rf ${x}
-	done
-
-	for x in $(ls | grep ".apk")
-	do
-		apkname=$(echo "${x}" | sed "s#.apk##g;s#-unsigned##g")
-		echo "V3签名：${apkname}.apk"
-		apksigner sign --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --out ${apkname}-aligned.apk --v4-signing-enabled true ${x}
-		echo -e "\napksigner sign --ks ${keyName} --key-pass pass:${password} --out ${apkname}-aligned.apk --v4-signing-enabled true ${x}"
-		rm -rf ${x}
-		rm -rf *.idsig
-	done
-}
-
 _installAPK(){
+	echo -e "\n\n\t${YELLOW}Install APK Begin！${WHITE}"
 	root=$(echo ${json} | jq -r ".root")
-	for x in $(ls | grep ".apk")
+	count=0
+	echo -e "\n\t\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[31m■\e[33m■\e[32m■\e[36m■\e[34m■\e[35m■\e[0m"
+	arr=($(ls | grep ".apk"))
+	for x in $(seq 0 $((${#arr[@]} - 1)))
 	do
-		if [ -n "$(echo ${x} | grep "debug")" ];then
-			echo "debug版本apk跳过安装"
-			continue
-		fi
-		# 需要root
-		if [ "${root}" == "true" ];then
-			root=$(echo $json | jq -r .root)
-			su -c pm install ${x}
-			su -c monkey -p "${namespace}" -c android.intent.category.LAUNCHER 1
-		else
-			mkdir -p "${sharedPath}/apk-signe"
-			cp -r "${workplace}" "${sharedPath}/apk-signe"
-			echo -e "\n${GREEN}[Note]${WHITE}：APK已复制一份至 /storage/emulated/0/Download/apktool/apk-signe/${namespace}"
-			apkName=$(echo ${x} | awk -F "/" '{print $NF}')
-			am start -a android.intent.action.VIEW -t application/vnd.android.package-archive -d "file:///storage/emulated/0/Download/apktool/apk-signe/${namespace}/${apkName}"
-		fi
+		echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${arr[${x}]}"
 	done
-	exit
+	echo -en "\n请在10s内输入安装的APK[${GREY}default: 1${WHITE}]：${GREEN}" ""
+	read -t 10 op
+	op=$(echo ${op} | sed "s# ##g")
+	[ "${op}" == "" ] && op=1
+	if [[ ${op} =~ ^[-]?[0-9]+$ && ${op} -gt 0 && ${op} -le ${#arr[@]} ]];then
+		apk=${arr[$((${op} - 1))]}
+	else
+		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的软件包不存在！${WHITE}"
+		exit
+	fi
+	# 需要root
+	if [ "${root}" == "true" ];then
+		su -c pm install ${apk}
+		su -c monkey -p "${namespace}" -c android.intent.category.LAUNCHER 1
+	else
+		mkdir -p "${sharedPath}/apk-signe"
+		cp -r "${workplace}" "${sharedPath}/apk-signe"
+		echo -e "\n${GREEN}[Note]${WHITE}：APK已复制一份至 /storage/emulated/0/Download/apktool/apk-signe/${namespace}"
+		am start -a android.intent.action.VIEW -t application/vnd.android.package-archive -d "file:///storage/emulated/0/Download/apktool/apk-signe/${namespace}/${apk}"
+	fi
 }
 
 
 # 给apk签名
 _signe(){
+	_createkey(){
+		if [ ! -e "${workplace}/${keyName}" ];then
+			keytool -genkeypair -v -keystore ${keyName} -alias release -keyalg RSA -keysize 2048 -validity 10000 -storetype PKCS12 -sigalg SHA256withRSA  -storepass ${password} -keypass ${password} -dname "CN=${Name}, OU=${OrganizationalUnit}, O=${Organization}, L=${City}, S=${State}, C=${CountryCode}"
+			# keytool -genkey -v -keystore ${keyName} -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass ${password} -keypass ${password} -dname "CN=${Name}, OU=${OrganizationalUnit}, O=${Organization}, L=${City}, S=${State}, C=${CountryCode}"
+			echo -e "\nkeytool -genkeypair -v -keystore ${keyName} -alias release -keyalg RSA -keysize 2048 -validity 10000 -storetype PKCS12 -sigalg SHA256withRSA  -storepass ${password} -keypass ${password} -dname "CN=${Name}, OU=${OrganizationalUnit}, O=${Organization}, L=${City}, S=${State}, C=${CountryCode}""
+		fi
+	}
+	
+	_V1(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V1签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${keyName} -storepass ${password} -keypass ${password} ${apkname} alias_name${WHITE}"
+		jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${keyName} -storepass ${password} -keypass ${password} ${apkname} release
+	}
+	_V2(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V2签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	_V3(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V3签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	_V1_V2(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V1 + V2签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled false --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	_V1_V3(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V1 + V3签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled true --v2-signing-enabled false --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled true --v2-signing-enabled false --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	_V2_V3(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V2 + V3签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	_V1_V2_V3(){
+		echo -e "\n[${YELLOW}Note${WHITE}]：对${apkname}进行V1 + V2 + V3签名"
+		echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}apksigner sign --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}${WHITE}"	
+		apksigner sign --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --ks ${keyName} --ks-pass pass:${password} --key-pass pass:${password} --ks-key-alias release ${apkname}
+	}
+	
 	if [ "$#" == "0" ];then
 		_userSelect
 	fi
@@ -281,18 +285,51 @@ _signe(){
 	mkdir -p ${workplace}
 	cd ${workplace}
 	rm -rf *.apk
+	rm -rf *.apk.idsig
 	for x in $(find ${projectPath} -type f -name *.apk)
 	do
 		cp ${x} ${workplace}
 	done
 	# 创建证书
-	createkey ${workplace}
-	for x in $(echo ${signeType} | sed "s#+# #g")
+	_createkey ${workplace}
+	
+	v=$(echo ${signeType} | sed "s# ##g;s#+#_#g" | tr '[:lower:]' '[:upper:]')
+
+	for x in $(ls | grep ".apk")
 	do
-		${x}
+		apkname=${x}
+		rm -rf *.apk.idsig
+		case "${v}" in
+			"V1")
+				_V1
+				;;
+			"V2")
+				_V2
+				;;
+			"V3")
+				_V3
+				;;
+			"V1_V2" | "V2_V1")
+				_V1_V2
+				;;
+			"V1_V3" | "V3_V1")
+				_V1_V3
+				;;
+			"V2_V3" | "V3_V2")
+				_V2_V3
+				;;
+			"V1_V2_V3" | "V2_V1_V3" | "V2_V3_V1" | "V1_V3_V2" | "V3_V1_V2" | "V3_V2_V1")
+				_V1_V2_V3
+				;;
+			*)
+				echo -e "${RED}[E]${WHITE}：配置文件签名书写不正确！\n -->> signeType=${signeType}\n${RED}Exit ！"
+				exit
+				;;
+			esac
 	done
+	rm -rf *.apk.idsig
 	# 安装软件
-	_installAPK ${workplace} ${namespace} ${namespace}
+	_installAPK ${workplace} ${namespace}
 }
 
 # 更换aapt2
@@ -1309,7 +1346,9 @@ _info(){
 	        ${RED}·${WHITE}Python       [${RED}✘${WHITE}]
 	        
 		    Author's message：目前脚本在起步阶段，作者偶尔摸鱼写 OR 修bug ${GREEN}(${YELLOW}p${RED}≧${GREEN}w\e${RED}≦\e${YELLOW}q\e${GREEN})${WHITE}
+		    
 		    ${GREY}QQ交流群：1888888      [入群密码：apktool]
+		    ${GREY}温馨提示：如果使用脚本下载SDK或者构建APK开始时的下载工作，网速表现的非常慢，这说明你的魔法不够强，需要自带强大的魔法才能够带动网速！
 		\n\n
 	EOF
 	)"
