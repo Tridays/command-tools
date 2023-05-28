@@ -1070,13 +1070,13 @@ _create(){
 			cd ${projectpath}
 			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
-			cd ${wordPathRoot}/template
-			rm -rf emptyActivity_Java
 			if [ ! -e "`pwd`/emptyActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
 			fi
+			cd ${wordPathRoot}/template
+			rm -rf emptyActivity_Java
 			unzip -o emptyActivity_Java.zip
 			# 处理根目录
 			cd emptyActivity_Java
@@ -1087,13 +1087,13 @@ _create(){
 			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
 			mkdir -p app/libs
-			cd ${wordPathRoot}/template
-			rm -rf emptyActivity_Kotlin
 			if [ ! -e "`pwd`/emptyActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
 			fi
+			cd ${wordPathRoot}/template
+			rm -rf emptyActivity_Kotlin
 			unzip -o emptyActivity_Kotlin.zip
 			# 处理根目录
 			cd emptyActivity_Kotlin
@@ -1148,13 +1148,13 @@ _create(){
 			cd ${projectpath}
 			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
-			cd ${wordPathRoot}/template
-			rm -rf noActivity_Java
 			if [ ! -e "`pwd`/noActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
 			fi
+			cd ${wordPathRoot}/template
+			rm -rf noActivity_Java
 			unzip -o noActivity_Java.zip
 			# 处理根目录
 			cd noActivity_Java
@@ -1182,13 +1182,13 @@ _create(){
 			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
 			mkdir -p app/libs
-			cd ${wordPathRoot}/template
-			rm -rf noActivity_Kotlin
 			if [ ! -e "`pwd`/noActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
 			fi
+			cd ${wordPathRoot}/template
+			rm -rf noActivity_Kotlin
 			unzip -o noActivity_Kotlin.zip
 			# 处理根目录
 			cd noActivity_Kotlin
