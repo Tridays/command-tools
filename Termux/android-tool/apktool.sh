@@ -1385,6 +1385,7 @@ _checkenv ${dependences}
 jsonPath="${HOME}/apkToolConfig.json"
 if [ ! -e "${jsonPath}" ];then
 	echo -e "\n${RED}[E]：${WHITE}配置文件不存在！请把json配置文件移至${HOME}${RED}EXIT ！${WHITE}"
+	echo -e "\n${GREEN}或者移步下载：https://raw.githubusercontent.com/Tridays/command-tools/main/Termux/android-tool/apkToolConfig.json"
 	exit
 fi
 json=$(cat ${jsonPath})
