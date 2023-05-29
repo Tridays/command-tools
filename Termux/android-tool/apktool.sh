@@ -194,6 +194,7 @@ _installAPK(){
 		echo -e "\n此选项 --> ${GREEN}${op}${WHITE} 对应的软件包不存在！${WHITE}"
 		exit
 	fi
+	echo -e "${WHITE}"
 	# 需要root
 	if [ "${root}" == "true" ];then
 		su -c pm install ${apk}
@@ -385,7 +386,6 @@ _auto(){
 	# 项目信息
 	projectName=$(echo ${data} | jq -r ".projectName")
 	projectPath=$(eval echo "$(echo ${data} | jq -r ".projectPath")")   # Android项目路径
-	#cmd=$(eval echo "$(echo ${data} | jq -r ".cmd")")   # 构建命令
 	cmd="$(echo ${data} | jq -r ".cmd")"   # 构建命令
 
 	
@@ -397,10 +397,17 @@ _auto(){
 	fi
 	cd ${projectPath}
 	chmod +x gradlew
-	rm -rf .gradle app/build
 	
 	_autoBuild(){
 		echo -e "\n${GREEN}[pwd]${WHITE}：$(pwd)"
+		cmd2='find . -name "*.bak" | xargs rm -rf'
+		eval ${cmd2}
+		echo -e "\n${GREEN}[cmd]${WHITE}：${cmd2}"
+		
+		cmd3='rm -rf .gradle app/build'
+		eval ${cmd3}
+		echo -e "\n${GREEN}[cmd]${WHITE}：${cmd3}"
+	
 		case ${jdk} in
 			8)
 				echo -e "\n${RED}[E]：${WHITE} 使用JDK8构建似乎存在bug，目前请优先使用 jdk11 OR jdk17！${RED}EXIT！"
