@@ -1070,7 +1070,7 @@ _create(){
 			cd ${projectpath}
 			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
-			if [ ! -e "`pwd`/emptyActivity_Java.zip" ];then
+			if [ ! -e "${wordPathRoot}/template/emptyActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
@@ -1087,7 +1087,7 @@ _create(){
 			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
 			mkdir -p app/libs
-			if [ ! -e "`pwd`/emptyActivity_Kotlin.zip" ];then
+			if [ ! -e "${wordPathRoot}/template/emptyActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源emptyActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
@@ -1148,7 +1148,7 @@ _create(){
 			cd ${projectpath}
 			gradle init --type java-application --test-framework junit --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
-			if [ ! -e "`pwd`/noActivity_Java.zip" ];then
+			if [ ! -e "${wordPathRoot}/template/noActivity_Java.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Java.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
@@ -1182,7 +1182,7 @@ _create(){
 			gradle init --type kotlin-application --project-name ${projectName} --dsl groovy --package ${namespace} <<< "\n\n"
 			rm -rf ${projectpath}/{.gitattributes,app/src/{main,test}/resources}
 			mkdir -p app/libs
-			if [ ! -e "`pwd`/noActivity_Kotlin.zip" ];then
+			if [ ! -e "${wordPathRoot}/template/noActivity_Kotlin.zip" ];then
 				echo -e "\n${RED}[E]：${WHITE}模板资源noActivity_Kotlin.zip已被删除，请适当调低apkToolConfig.json配置文件里面对应的参数template_versio，再更新脚本！ ${RED}EXIT ！${WHITE}"
 				rm -rf ${projectpath}
 				exit
