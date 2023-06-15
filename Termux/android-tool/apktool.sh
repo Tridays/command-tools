@@ -352,26 +352,26 @@ _changeAAPT2(){
 	echo ""
 	
 	# 替换jar
-	for x in $(find $HOME/.gradle -type f -name "aapt2*linux.jar")
+	for i in $(find $HOME/.gradle -type f -name "aapt2*linux.jar")
 	do
-		jarName="$(echo ${x} | awk -F "/" '{print $NF}')"
-		echo -e "\n${BLUE}[Find]${WHITE}：${x}\n${GREEN}[jar name]${WHITE}：${jarName}\n${RED}[Note]${WHITE}：Auto Replace Jar......\n"
-		cp ${x} ./
+		jarName="$(echo ${i} | awk -F "/" '{print $NF}')"
+		echo -e "\n${BLUE}[Find]${WHITE}：${i}\n${GREEN}[jar name]${WHITE}：${jarName}\n${RED}[Note]${WHITE}：Auto Replace Jar......\n"
+		cp ${i} ./
 		jar -xf ${jarName}
 		ls
 		cp ${AAPT2Bin} ${path}
 		jar -cf ${jarName} *
 		ls
-		cp ${jarName} ${x}
+		cp ${jarName} ${i}
 		rm -rf ${path}/*
 	done
 
 	# 替换AAPT2
-	for x in $(find $HOME/.gradle -type f -name "aapt2")
+	for i in $(find $HOME/.gradle -type f -name "aapt2")
 	do	
-		binName="$(echo ${x} | awk -F "/" '{print $NF}')"
-		cp ${AAPT2Bin} ${x}
-		echo -e "\n${BLUE}[Find]${WHITE}：${x}\n${GREEN}[bin name]${WHITE}：${binName}\n${RED}[Note]${WHITE}：Auto Replace Jar......\n"
+		binName="$(echo ${i} | awk -F "/" '{print $NF}')"
+		cp ${AAPT2Bin} ${i}
+		echo -e "\n${BLUE}[Find]${WHITE}：${i}\n${GREEN}[bin name]${WHITE}：${binName}\n${RED}[Note]${WHITE}：Auto Replace Jar......\n"
 	done
 }
 
@@ -442,7 +442,6 @@ _auto(){
 				echo -e "\n${GREEN}[Note]${WHITE}：JAVA_HOME=${JAVA_HOME}"
 				echo -e "\n${GREEN}[cmd]${WHITE}：${GREEN}${cmd}${WHITE}"
 				eval ${cmd}
-				
 				return $?
 				;;
 			*)
@@ -1372,7 +1371,8 @@ _userSelect(){
 	for x in $(seq 0 $((${num} - 1)))
 	do
 		projectName=$(echo ${json} | jq -r ".androidProject[${x}].projectName")
-		echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${projectName}"
+		namespace=$(echo ${json} | jq -r ".androidProject[${x}].namespace")
+		echo -e "\t${GREEN}$((${x} + 1))${WHITE}．${projectName}\t[${namespace}]"
 	done
 	echo -en "请输入项目序号：${GREEN}" ""
 	read op
