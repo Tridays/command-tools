@@ -205,6 +205,8 @@ _installAPK(){
 		echo -e "\n${GREEN}[Note]${WHITE}：APK已复制一份至 /storage/emulated/0/Download/apktool/apk-signe/${namespace}"
 		am start -a android.intent.action.VIEW -t application/vnd.android.package-archive -d "file:///storage/emulated/0/Download/apktool/apk-signe/${namespace}/${apk}"
 	fi
+	_command "logcat -s ${namespace}"
+	
 }
 
 
@@ -1353,7 +1355,7 @@ _info(){
 	        
 		    Author's message：目前脚本在起步阶段，作者偶尔摸鱼写 OR 修bug ${GREEN}(${YELLOW}p${RED}≧${GREEN}w\e${RED}≦\e${YELLOW}q\e${GREEN})${WHITE}
 		    
-		    ${GREY}QQ交流群：1888888      [入群密码：apktool]
+		    ${GREY}QQ交流群：690514504      [入群密码：唱跳rap]
 		    ${GREY}温馨提示：如果使用脚本下载SDK或者构建APK开始时的下载工作，网速表现的非常慢，这说明你的魔法不够强，需要自带强大的魔法才能够带动网速！
 		\n\n
 	EOF

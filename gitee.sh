@@ -53,5 +53,5 @@ git commit -m 'git gitee'
 msg $green 'git push '
 #git push 
 #git push 
-git push --set-upstream origin master #<<"djyd\na20010207120"
+git push --set-upstream origin master #<<"账号\n密码"
 ##git config credential.helper store  # 执行一次，之后只需要输入一次密码，再也不需要了

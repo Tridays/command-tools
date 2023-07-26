@@ -16,7 +16,7 @@ white="\e[0m"
 
 msg() { echo -e "\n$blue[*]$white$1$2$white" ;:;}  ##自定义通告颜色
 
-msg $green 'git config --global user.name "WindowHZT"'
+msg $green 'git config --global user.name "Tridays"'
 git config --global user.name "Tridays"
 
 msg $green 'git config --global user.email "2028741073@qq.com"'
@@ -33,7 +33,7 @@ msg $green 'git init '
 git init
 #git pull --rebase origin main
 
-msg $green 'git remote add origin https://gitee.com/djyd/termux-ubuntu2004.git'
+msg $green 'git remote add origin https://github.com/Tridays/command-tools.git'
 git remote add origin https://github.com/Tridays/command-tools.git
 #git pull origin main
 
@@ -56,5 +56,5 @@ git commit -m 'git up'
 msg $green 'git push '
 #git push 
 #git push 
-git push --set-upstream origin main #<<"djyd\na20010207120"
+git push --set-upstream origin main #<<"账号\n密码"
 ##git config credential.helper store  # 执行一次，之后只需要输入一次密码，再也不需要了
