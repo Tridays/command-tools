@@ -1,6 +1,5 @@
 @echo off
-
-echo "�л���Wiki1Ŀ¼"
+chcp 65001
 d:
 cd \WorkSpace\Code\VS\command-tools
 
@@ -10,5 +9,4 @@ git add .
 git status
 git commit -m "git up"
 git push --set-upstream origin main
-
-set /p var=�س��˳��ű���
+pause
