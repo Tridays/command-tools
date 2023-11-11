@@ -7,7 +7,7 @@ purple="\e[35;1m"    #紫红
 cyanine="\e[36;1m"    #青
 white="\e[0m"
 
-
+# 测试
 #bash -n /data/data/com.termux/files/home/hzt/op.sh
 #[ ! "$?" == "0" ]&&echo -e "\n\n$red检查到op.sh有语法错误，停止上传!$white"&&exit
 
