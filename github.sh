@@ -7,6 +7,11 @@ purple="\e[35;1m"    #紫红
 cyanine="\e[36;1m"    #青
 white="\e[0m"
 
+
+
+
+
+
 # ssh-keygen -t rsa -b 4096
 
 #bash -n /data/data/com.termux/files/home/hzt/op.sh
